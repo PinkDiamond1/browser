@@ -2,11 +2,11 @@ package task
 
 import (
 	"database/sql"
-	"github.com/browser_service/client"
-	"github.com/browser_service/config"
-	"github.com/browser_service/db"
-	. "github.com/browser_service/log"
-	"github.com/browser_service/types"
+	"github.com/browser/client"
+	"github.com/browser/config"
+	"github.com/browser/db"
+	. "github.com/browser/log"
+	"github.com/browser/types"
 	"go.uber.org/zap"
 	"math/big"
 )

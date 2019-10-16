@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/browser_service/db"
-	"github.com/browser_service/dispatch"
-	_ "github.com/browser_service/init"
+	"github.com/browser/db"
+	"github.com/browser/dispatch"
+	_ "github.com/browser/init"
 	"os"
 	"os/signal"
 	"syscall"

@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/browser_service/db"
-	. "github.com/browser_service/log"
-	"github.com/browser_service/types"
+	"github.com/browser/db"
+	. "github.com/browser/log"
+	"github.com/browser/types"
 	"go.uber.org/zap"
 	"strings"
 )

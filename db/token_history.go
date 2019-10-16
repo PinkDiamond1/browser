@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	. "github.com/browser_service/log"
+	. "github.com/browser/log"
 	"go.uber.org/zap"
 )
 

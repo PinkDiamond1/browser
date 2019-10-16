@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/Jeffail/gabs"
-	"github.com/browser_service/config"
-	. "github.com/browser_service/log"
+	"github.com/browser/config"
+	. "github.com/browser/log"
 	"go.uber.org/zap"
 )
 

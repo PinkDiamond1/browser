@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"strconv"
 
-	. "github.com/browser_service/log"
-	"github.com/browser_service/types"
+	. "github.com/browser/log"
+	"github.com/browser/types"
 	"go.uber.org/zap"
 )
 

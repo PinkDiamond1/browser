@@ -1,13 +1,13 @@
 package task
 
 import (
-	"github.com/browser_service/client"
+	"github.com/browser/client"
 	"math/big"
 
 	"database/sql"
-	"github.com/browser_service/db"
-	. "github.com/browser_service/log"
-	"github.com/browser_service/types"
+	"github.com/browser/db"
+	. "github.com/browser/log"
+	"github.com/browser/types"
 	"go.uber.org/zap"
 )
 

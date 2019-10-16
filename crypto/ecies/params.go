@@ -42,7 +42,7 @@ import (
 	"fmt"
 	"hash"
 
-	ethcrypto "github.com/browser_service/crypto"
+	ethcrypto "github.com/browser/crypto"
 )
 
 var (

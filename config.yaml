@@ -17,17 +17,17 @@ browser:
     console: true
     syncBlockShowNumber: 1000
   tasks:
-    - block
-    - txs
-    - action
-    - internalAction
-    - feeAction
-    - account
-    - accountBalance
-    - token
-    - accountHistory
-    - tokenHistory
-    - feeHistory
+#    - block
+#    - txs
+#    - action
+#    - internalAction
+#    - feeAction
+#    - account
+#    - accountBalance
+#    - token
+#    - accountHistory
+#    - tokenHistory
+#    - feeHistory
   blockDataChanBufferSize: 10000
 
 

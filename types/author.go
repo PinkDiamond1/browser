@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/hex"
 	"errors"
-	"github.com/browser_service/rlp"
+	"github.com/browser/rlp"
 	"io"
 	"strings"
 )

@@ -3,8 +3,8 @@ package client
 import (
 	"encoding/json"
 	"errors"
-	. "github.com/browser_service/log"
-	"github.com/browser_service/types"
+	. "github.com/browser/log"
+	"github.com/browser/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"go.uber.org/zap"
 	"math/big"

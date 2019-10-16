@@ -2,8 +2,8 @@ package types
 
 import (
 	"fmt"
-	"github.com/browser_service/common"
-	"github.com/browser_service/rlp"
+	"github.com/browser/common"
+	"github.com/browser/rlp"
 	"math/big"
 )
 

@@ -2,7 +2,7 @@ package log
 
 import (
 	"fmt"
-	"github.com/browser_service/config"
+	"github.com/browser/config"
 	"github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

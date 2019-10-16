@@ -26,7 +26,7 @@ type MysqlFee struct {
 }
 
 func InsertFee(data *MysqlFee, dbTx *sql.Tx) error {
-	tName := GetTableNameHash("fee_actions_hash", data.TxHash)
+	tName := GetTableNameHash("fee_actions_hash", data.ActionHash)
 	stmt, err := dbTx.Prepare(fmt.Sprintf("insert into %s (tx_hash, action_hash,action_index,fee_index,height,created,asset_id,"+
 		"from_account, to_account, amount, reason) values (?,?,?,?,?,?,?,?,?,?,?)", tName))
 	defer stmt.Close()

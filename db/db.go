@@ -133,8 +133,8 @@ func (mysql *mysql) GetBlockOriginalByHeight(height uint64) *BlockOriginal {
 	return result
 }
 
-func AddReversibleBlockCache(tx *sql.Tx, block *BlockOriginal) {
-	stmt, err := tx.Prepare("insert into block_original (block_data, height, block_hash, parent_hash) values (?, ?, ?, ?)")
+func AddReversibleBlockCache(block *BlockOriginal) {
+	stmt, err := Mysql.db.Prepare("insert into block_original (block_data, height, block_hash, parent_hash) values (?, ?, ?, ?)")
 	defer stmt.Close()
 	if err != nil {
 		ZapLog.Panic("prepare insert block_original error")
@@ -147,8 +147,8 @@ func AddReversibleBlockCache(tx *sql.Tx, block *BlockOriginal) {
 
 }
 
-func DeleteIrreversibleCache(tx *sql.Tx, height uint64) {
-	stmt, err := tx.Prepare("delete from block_original where height <= ?")
+func DeleteIrreversibleCache(height uint64) {
+	stmt, err := Mysql.db.Prepare("delete from block_original where height <= ?")
 	defer stmt.Close()
 	if err != nil {
 		ZapLog.Panic("prepare delete irreversible cache error", zap.Error(err))

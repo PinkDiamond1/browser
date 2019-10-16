@@ -233,8 +233,8 @@ func (d *Dispatch) cacheBlock(blockData *task.TaskChanData) {
 		}
 
 		if blockData.Block.Block.Head.Number.Uint64() > irreversible.BftIrreversible {
-			db.AddReversibleBlockCache(blockData.Tx, BlockToBlob(blockData.Block))
-			db.DeleteIrreversibleCache(blockData.Tx, height)
+			db.AddReversibleBlockCache(BlockToBlob(blockData.Block))
+			db.DeleteIrreversibleCache(irreversible.BftIrreversible)
 		}
 	}
 }

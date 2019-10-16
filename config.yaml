@@ -1,12 +1,12 @@
 browser:
   mysql:
-    user: test
-    password: test
+    user: root
+    password: 12345678
     ip: localhost
     port: 3306
-    database: test
+    database: ft
   node:
-    rpcHost: http://127.0.0.1:55000
+    rpcHost: http://192.168.1.148:3090
   log:
     level: info #error info debug
     file:
@@ -17,17 +17,17 @@ browser:
     console: true
     syncBlockShowNumber: 1000
   tasks:
-#    - block
-#    - txs
-#    - action
-#    - internalAction
-#    - feeAction
-#    - account
-#    - accountBalance
-#    - token
-#    - accountHistory
-#    - tokenHistory
-#    - feeHistory
+    - block
+    - txs
+    - action
+    - internalAction
+    - feeAction
+    - account
+    - accountBalance
+    - token
+    - accountHistory
+    - tokenHistory
+    - feeHistory
   blockDataChanBufferSize: 10000
 
 

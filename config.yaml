@@ -1,0 +1,38 @@
+browser:
+  mysql:
+    user: test
+    password: test
+    ip: localhost
+    port: 3306
+    database: test
+  node:
+    rpcHost: http://127.0.0.1:55000
+  log:
+    level: info #error info debug
+    file:
+      enable: false
+      path: browser-service.log
+      rotationTime: 1 #time.Duration 1:day 2:hour
+      maxAge: 15 #day
+    console: true
+    syncBlockShowNumber: 1000
+  tasks:
+    - block
+    - txs
+    - action
+    - internalAction
+    - feeAction
+    - account
+    - accountBalance
+    - token
+    - accountHistory
+    - tokenHistory
+    - feeHistory
+  blockDataChanBufferSize: 10000
+
+
+
+
+
+
+

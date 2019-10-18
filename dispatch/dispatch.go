@@ -70,12 +70,6 @@ func (d *Dispatch) Start() {
 		case isRollback = <-d.isRollbackChan:
 			if !isRollback {
 				//clear block
-				for {
-					_, ok := <-d.blockDataChan
-					if !ok {
-						break
-					}
-				}
 				startHeight = d.startHeight
 			} else {
 				time.Sleep(time.Duration(1) * time.Second)
@@ -202,6 +196,18 @@ func (d *Dispatch) checkTaskResult() {
 
 func (d *Dispatch) rollback() {
 	d.isRollbackChan <- true
+	for {
+		isclear := false
+		select {
+		case <-d.blockDataChan:
+			time.Sleep(time.Duration(100) * time.Millisecond)
+		default:
+			isclear = true
+		}
+		if isclear {
+			break
+		}
+	}
 	endHeight := d.currentBlock.Block.Head.Number.Uint64() - 1
 
 	for ; ; endHeight-- {

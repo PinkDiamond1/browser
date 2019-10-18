@@ -361,21 +361,22 @@ func (a *AccountTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	deleteAccounts := make(map[string]uint64)
 	for i, tx := range txs {
 		receipt := receipts[i]
-		detailTx := detailTxs[i]
 		for j, at := range tx.RPCActions {
 			actionReceipt := receipt.ActionResults[j]
-			internalActions := detailTx.InternalActions[j]
 			if actionReceipt.Status == types.ReceiptStatusSuccessful {
 				err := a.rollbackAccount(at, dbTx, deleteAccounts)
 				if err != nil {
 					ZapLog.Error("rollbackAccount error:", zap.Error(err))
 					return err
 				}
-				for _, iat := range internalActions.InternalLogs {
-					err := a.rollbackAccount(iat.Action, dbTx, deleteAccounts)
-					if err != nil {
-						ZapLog.Error("rollbackAccount error:", zap.Error(err))
-						return err
+				if len(detailTxs) != 0 {
+					internalActions := detailTxs[i].InternalActions[j]
+					for _, iat := range internalActions.InternalLogs {
+						err := a.rollbackAccount(iat.Action, dbTx, deleteAccounts)
+						if err != nil {
+							ZapLog.Error("rollbackAccount error:", zap.Error(err))
+							return err
+						}
 					}
 				}
 			}
@@ -408,6 +409,7 @@ func (a *AccountTask) Start(data chan *TaskChanData, rollbackData chan *TaskChan
 			}
 			result <- true
 		case rd := <-rollbackData:
+			a.startHeight--
 			if a.startHeight == rd.Block.Block.Head.Number.Uint64() {
 				a.init()
 				err := a.rollback(rd.Block, a.Tx)
@@ -415,7 +417,6 @@ func (a *AccountTask) Start(data chan *TaskChanData, rollbackData chan *TaskChan
 					ZapLog.Error("AccountTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
 					panic(err)
 				}
-				a.startHeight--
 				a.commit()
 			}
 			result <- true

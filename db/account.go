@@ -88,7 +88,7 @@ func GetAccountByName(name string, dbTx *sql.Tx) (*MysqlAccount, error) {
 }
 
 func DeleteAccountByName(name string, dbTx *sql.Tx) error {
-	stmt, err := dbTx.Prepare(fmt.Sprintf("delete from acount where s_name = %s", name))
+	stmt, err := dbTx.Prepare(fmt.Sprintf("delete from account where s_name = '%s'", name))
 	defer stmt.Close()
 	if err != nil {
 		ZapLog.Panic("DeleteAccountByName error", zap.Error(err), zap.String("name", name))

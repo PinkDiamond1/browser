@@ -48,7 +48,7 @@ func ReplaceToken(tx *sql.Tx, token *Token) {
 		ZapLog.Panic("prepare replace token error", zap.Error(err), zap.String("token", fmt.Sprint(token)))
 	}
 
-	_, err = stmt.Exec(token.AssetName, token.AssetSymbol, token.Decimals, token.AssetId, token.ContractName, token.Description, token.CreateUser, token.CreateTime, token.AssetOwner, token.Founder, token.UpperLimit, token.Liquidity, token.CumulativeIssue, token.CumulativeDestruction, token.UpdateTime)
+	_, err = stmt.Exec(token.AssetName, token.AssetSymbol, token.Decimals, token.AssetId, token.ContractName, token.Description, token.CreateUser, token.CreateTime, token.AssetOwner, token.Founder, token.UpperLimit.String(), token.Liquidity.String(), token.CumulativeIssue.String(), token.CumulativeDestruction.String(), token.UpdateTime)
 	if err != nil {
 		ZapLog.Panic("replace token error", zap.Error(err), zap.String("token", fmt.Sprint(token)))
 	}
@@ -152,9 +152,14 @@ func QueryTokenBackupById(tx *sql.Tx, assetId uint64, height uint64) *Token {
 
 	row := stmt.QueryRow(assetId, height)
 	token := &Token{}
-	err = row.Scan(&token.Id, &token.AssetName, &token.AssetSymbol, &token.Decimals, &token.AssetId, &token.ContractName, &token.Description, &token.CreateUser, &token.CreateTime, &token.AssetOwner, &token.Founder, &token.UpperLimit, &token.Liquidity, &token.CumulativeIssue, &token.CumulativeDestruction, &token.UpdateTime)
+	var UpperLimit, Liquidity, CumulativeIssue, CumulativeDestruction string
+	err = row.Scan(&token.Id, &token.AssetName, &token.AssetSymbol, &token.Decimals, &token.AssetId, &token.ContractName, &token.Description, &token.CreateUser, &token.CreateTime, &token.AssetOwner, &token.Founder, &UpperLimit, &Liquidity, &CumulativeIssue, &CumulativeDestruction, &token.UpdateTime)
 	if err != nil {
 		ZapLog.Panic("select token_backup by asset id error", zap.Error(err), zap.Uint64("assetName", assetId))
 	}
+	token.UpperLimit, _ = big.NewInt(0).SetString(UpperLimit, 10)
+	token.Liquidity, _ = big.NewInt(0).SetString(Liquidity, 10)
+	token.CumulativeIssue, _ = big.NewInt(0).SetString(CumulativeIssue, 10)
+	token.CumulativeDestruction, _ = big.NewInt(0).SetString(CumulativeDestruction, 10)
 	return token
 }

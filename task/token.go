@@ -30,11 +30,11 @@ func (t *TokenTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanDa
 			}
 			result <- true
 		case block := <-rollbackData:
+			t.startHeight--
 			if t.startHeight == block.Block.Block.Head.Number.Uint64() {
 				t.init()
 				block.Tx = t.Tx
 				t.rollback(block)
-				t.startHeight--
 				t.commit()
 			}
 			result <- true

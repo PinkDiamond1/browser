@@ -161,6 +161,20 @@ func DeleteIrreversibleCache(height uint64) {
 
 }
 
+func DeleteOverOriginalBlock(height uint64) {
+	stmt, err := Mysql.db.Prepare("delete from block_original where height >= ?")
+	defer stmt.Close()
+	if err != nil {
+		ZapLog.Panic("prepare delete irreversible cache error", zap.Error(err))
+	}
+
+	_, err = stmt.Exec(height)
+	if err != nil {
+		ZapLog.Panic("delete irreversible cache error", zap.Error(err))
+	}
+
+}
+
 func UpdateTaskStatus(tx *sql.Tx, taskType string, height uint64) {
 	stmt, err := tx.Prepare("update task_status set height = ? where task_type = ?")
 	defer stmt.Close()

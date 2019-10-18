@@ -70,7 +70,11 @@ func (d *Dispatch) Start() {
 		case isRollback = <-d.isRollbackChan:
 			if !isRollback {
 				//clear block
-				for _, ok := <-d.blockDataChan; ok; {
+				for {
+					_, ok := <-d.blockDataChan
+					if !ok {
+						break
+					}
 				}
 				startHeight = d.startHeight
 			} else {

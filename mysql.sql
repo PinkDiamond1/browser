@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS token_fee_history_id (
 
 CREATE TABLE IF NOT EXISTS block_original (
   id INT(11) NOT NULL AUTO_INCREMENT,
-  block_data BLOB NOT NULL,
+  block_data LONGBLOB NOT NULL,
   height INT(11) NOT NULL,
   block_hash VARCHAR(100) NOT NULL,
   parent_hash VARCHAR(100) NOT NULL,

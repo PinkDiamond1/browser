@@ -76,7 +76,7 @@ func GetAccountByName(name string, dbTx *sql.Tx) (*MysqlAccount, error) {
 	row := dbTx.QueryRow(sqlStr, name)
 	a := &MysqlAccount{}
 	err := row.Scan(&a.Name, &a.ParentName, &a.CreateUser, &a.Founder, &a.AccountID, &a.Number, &a.Nonce, &a.AuthorVersion, &a.Threshold, &a.UpdateAuthorThreshold, &a.Permissions, &a.Created,
-		&a.ContractCode, &a.CodeHash, &a.ContractCreated, &a.Description, &a.Suicide, &a.Description)
+		&a.ContractCode, &a.CodeHash, &a.ContractCreated, &a.Description, &a.Suicide, &a.Destroy)
 	if err == sql.ErrNoRows {
 		return nil, err
 	}

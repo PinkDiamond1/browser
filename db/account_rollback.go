@@ -38,7 +38,7 @@ func GetOldAccountByName(name string, dbTx *sql.Tx) (*MysqlAccountRollback, erro
 		Account: a,
 	}
 	err := row.Scan(&a.Name, &a.ParentName, &a.CreateUser, &a.Founder, &a.AccountID, &a.Number, &a.Nonce, &a.AuthorVersion, &a.Threshold, &a.UpdateAuthorThreshold, &a.Permissions, &a.Created,
-		&a.ContractCode, &a.CodeHash, &a.ContractCreated, &a.Description, &a.Suicide, &a.Description, &oa.Height)
+		&a.ContractCode, &a.CodeHash, &a.ContractCreated, &a.Description, &a.Suicide, &a.Destroy, &oa.Height)
 	if err == sql.ErrNoRows {
 		return nil, err
 	}

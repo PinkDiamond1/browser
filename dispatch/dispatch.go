@@ -226,6 +226,7 @@ func (d *Dispatch) rollback() {
 			}
 			d.checkTaskResult()
 		} else {
+			d.currentBlock = chainBlock
 			d.startHeight = endHeight + 1
 			break
 		}

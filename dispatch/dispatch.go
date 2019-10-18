@@ -225,6 +225,7 @@ func (d *Dispatch) rollback() {
 				rollbackChan <- rollbackData
 			}
 			d.checkTaskResult()
+			db.DeleteIrreversibleCache(dbBlock.Height)
 		} else {
 			d.currentBlock = chainBlock
 			d.startHeight = endHeight + 1

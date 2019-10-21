@@ -1,10 +1,12 @@
 package task
 
 import (
-	"github.com/browser/client"
 	"math/big"
 
+	"github.com/browser/client"
+
 	"database/sql"
+
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"github.com/browser/types"

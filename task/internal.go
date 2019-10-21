@@ -3,11 +3,12 @@ package task
 import (
 	"database/sql"
 	"encoding/json"
+	"strings"
+
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"github.com/browser/types"
 	"go.uber.org/zap"
-	"strings"
 )
 
 type InternalTask struct {

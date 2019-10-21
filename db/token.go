@@ -63,7 +63,12 @@ func QueryTokenByName(tx *sql.Tx, assetName string) *Token {
 
 	row := stmt.QueryRow(assetName)
 	token := &Token{}
-	err = row.Scan(&token.Id, &token.AssetName, &token.AssetSymbol, &token.Decimals, &token.AssetId, &token.ContractName, &token.Description, &token.CreateUser, &token.CreateTime, &token.AssetOwner, &token.Founder, &token.UpperLimit, &token.Liquidity, &token.CumulativeIssue, &token.CumulativeDestruction, &token.UpdateTime)
+	var UpperLimit, Liquidity, CumulativeIssue, CumulativeDestruction string
+	err = row.Scan(&token.Id, &token.AssetName, &token.AssetSymbol, &token.Decimals, &token.AssetId, &token.ContractName, &token.Description, &token.CreateUser, &token.CreateTime, &token.AssetOwner, &token.Founder, &UpperLimit, &Liquidity, &CumulativeIssue, &CumulativeDestruction, &token.UpdateTime)
+	token.UpperLimit, _ = big.NewInt(0).SetString(UpperLimit, 10)
+	token.Liquidity, _ = big.NewInt(0).SetString(Liquidity, 10)
+	token.CumulativeIssue, _ = big.NewInt(0).SetString(CumulativeIssue, 10)
+	token.CumulativeDestruction, _ = big.NewInt(0).SetString(CumulativeDestruction, 10)
 	if err != nil {
 		ZapLog.Panic("select token by asset name error", zap.Error(err), zap.String("assetName", assetName))
 	}

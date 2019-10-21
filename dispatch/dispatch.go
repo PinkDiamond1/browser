@@ -1,6 +1,8 @@
 package dispatch
 
 import (
+	"time"
+
 	"github.com/browser/client"
 	"github.com/browser/config"
 	"github.com/browser/db"
@@ -9,7 +11,6 @@ import (
 	"github.com/browser/task"
 	"github.com/browser/types"
 	"go.uber.org/zap"
-	"time"
 )
 
 var (
@@ -130,8 +131,8 @@ func (d *Dispatch) batchPullIrreversibleBlock() {
 		ZapLog.Panic("get dpos irreversible error", zap.Error(err))
 	}
 
-	if d.startHeight < irreversible.BftIrreversible {
-		scanning(int64(d.startHeight), int64(irreversible.BftIrreversible), d.blockDataChan)
+	if d.startHeight < d.batchTo {
+		scanning(int64(d.startHeight), int64(d.batchTo), d.blockDataChan)
 	} else {
 		d.batchTo = d.startHeight
 	}

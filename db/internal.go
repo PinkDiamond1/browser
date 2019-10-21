@@ -32,7 +32,7 @@ type MysqlInternal struct {
 }
 
 func InsertInternalAction(data *MysqlInternal, dbTx *sql.Tx) error {
-	tName := GetTableNameHash("internal_actions_hash", data.TxHash)
+	tName := GetTableNameHash("internal_actions_hash", data.ActionHash)
 	stmt, err := dbTx.Prepare(fmt.Sprintf("insert into %s (tx_hash, action_hash,height,created,action_index,internal_index,asset_id,"+
 		"action_type,from_account,to_account,amount,gas_limit,gas_used,depth,state,error_msg,payload) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tName))
 	defer stmt.Close()

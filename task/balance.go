@@ -2,7 +2,6 @@ package task
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/browser/client"
 	"github.com/browser/config"
 	"github.com/browser/db"
@@ -25,7 +24,6 @@ func subBalance(from string, assetId uint64, value *big.Int, h uint64, ut uint, 
 	}
 	amount := big.NewInt(0).Sub(balance, value)
 	if amount.Cmp(big.NewInt(0)) < 0 {
-		fmt.Println("---", balance.String(), value.String())
 		ZapLog.Error("from balance not enough", zap.String("from", from))
 		return BalanceNotEnough
 	}
@@ -63,26 +61,11 @@ func addBalance(to string, assetId uint64, value *big.Int, h uint64, ut uint, db
 	return nil
 }
 
-func transfer(from, to string, assetId uint64, value *big.Int, h uint64, ut uint, dbTx *sql.Tx) error {
-	if from != "" && from != config.Chain.ChainFeeName {
-		err := subBalance(from, assetId, value, h, ut, dbTx)
-		if err != nil {
-			return err
-		}
-	}
-	if to != "" && to != config.Chain.ChainFeeName {
-		err := addBalance(to, assetId, value, h, ut, dbTx, false)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	txs := data.Block.Txs
 	receipts := data.Receipts
 	detailTxs := data.DetailTxs
+	balanceChangedMap := make(map[string]map[uint64]*big.Int)
 	for i, tx := range txs {
 		receipt := receipts[i]
 		for j, at := range tx.RPCActions {
@@ -90,27 +73,24 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 			fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(actionReceipt.GasUsed), big.NewInt(0).SetUint64(tx.GasPrice.Uint64()))
 			if data.Block.Head.Number.Uint64() > 0 {
 				if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
-					err := subBalance(at.From.String(), tx.GasAssetID, fee, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx)
-					if err != nil {
-						ZapLog.Error("sub fee error: ", zap.Error(err), zap.String("fee from", at.From.String()))
-						return err
-					}
+					changeBalance(balanceChangedMap, at.From.String(), tx.GasAssetID, fee, false)
 				}
 			}
 			if actionReceipt.Status == types.ReceiptStatusSuccessful {
 				if at.Amount.Cmp(big.NewInt(0)) > 0 {
-					err := transfer(at.From.String(), at.To.String(), at.AssetID, at.Amount, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx)
-					if err != nil {
-						ZapLog.Error("transfer error: ", zap.Error(err))
-						return err
+					if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
+						changeBalance(balanceChangedMap, at.From.String(), at.AssetID, at.Amount, false)
+					}
+					if at.To.String() != "" && at.To.String() != config.Chain.ChainFeeName {
+						changeBalance(balanceChangedMap, at.To.String(), at.AssetID, at.Amount, true)
 					}
 				}
-				payload, err := parsePayload(at)
-				if err != nil {
-					ZapLog.Error("parse payload error: ", zap.Error(err))
-					return err
-				}
 				if data.Block.Head.Number.Uint64() == 0 && at.Type == types.IssueAsset {
+					payload, err := parsePayload(at)
+					if err != nil {
+						ZapLog.Error("parse payload error: ", zap.Error(err))
+						return err
+					}
 					arg := payload.(types.IssueAssetObject)
 					assetInfo, err := client.GetAssetInfoByName(arg.AssetName)
 					if err != nil {
@@ -126,23 +106,69 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 				if len(detailTxs) != 0 {
 					internalActions := detailTxs[i].InternalActions[j]
 					for _, iat := range internalActions.InternalLogs {
-						err := transfer(iat.Action.From.String(), iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx)
-						if err != nil {
-							ZapLog.Error("transfer error: ", zap.Error(err))
-							return err
+						if iat.Action.From.String() != "" && iat.Action.From.String() != config.Chain.ChainFeeName {
+							changeBalance(balanceChangedMap, iat.Action.From.String(), at.AssetID, at.Amount, false)
+						}
+						if iat.Action.To.String() != "" && iat.Action.To.String() != config.Chain.ChainFeeName {
+							changeBalance(balanceChangedMap, iat.Action.To.String(), at.AssetID, at.Amount, true)
 						}
 					}
 				}
 			}
 		}
 	}
+	bigZero := big.NewInt(0)
+	h := data.Block.Head.Number.Uint64()
+	ut := data.Block.Head.Time
+	for name, bs := range balanceChangedMap {
+		for assetId, v := range bs {
+			rs := v.Cmp(bigZero)
+			if rs > 0 {
+				addBalance(name, assetId, v, h, ut, dbTx, false)
+			} else if rs < 0 {
+				absv := v.Abs(v)
+				subBalance(name, assetId, absv, h, ut, dbTx)
+			}
+		}
+	}
 	return nil
+}
+
+func changeBalance(balancesMap map[string]map[uint64]*big.Int, name string, assetId uint64, value *big.Int, add bool) {
+	if add {
+		if bs, ok := balancesMap[name]; ok {
+			if b, ok := bs[assetId]; ok {
+				b = b.Add(b, value)
+			} else {
+				balancesMap[name][assetId] = big.NewInt(0).Set(value)
+			}
+		} else {
+			balancesMap[name] = make(map[uint64]*big.Int)
+			balancesMap[name][assetId] = big.NewInt(0).Set(value)
+		}
+	} else {
+		if bs, ok := balancesMap[name]; ok {
+			if b, ok := bs[assetId]; ok {
+				b = b.Sub(b, value)
+			} else {
+				b = big.NewInt(0)
+				b = b.Sub(b, value)
+				bs[assetId] = b
+			}
+		} else {
+			b := big.NewInt(0)
+			b = b.Sub(b, value)
+			balancesMap[name] = make(map[uint64]*big.Int)
+			balancesMap[name][assetId] = b
+		}
+	}
 }
 
 func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	txs := data.Block.Txs
 	receipts := data.Receipts
 	detailTxs := data.DetailTxs
+	balanceChangedMap := make(map[string]map[uint64]*big.Int)
 	for i, tx := range txs {
 		receipt := receipts[i]
 		for j, at := range tx.RPCActions {
@@ -157,22 +183,38 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 			}
 			if actionReceipt.Status == types.ReceiptStatusSuccessful {
 				if at.Amount.Cmp(big.NewInt(0)) > 0 {
-					err := transfer(at.To.String(), at.From.String(), at.AssetID, at.Amount, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx)
-					if err != nil {
-						ZapLog.Error("transfer error: ", zap.Error(err))
-						return err
+					if at.To.String() != "" && at.To.String() != config.Chain.ChainFeeName {
+						changeBalance(balanceChangedMap, at.To.String(), at.AssetID, at.Amount, false)
+					}
+					if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
+						changeBalance(balanceChangedMap, at.From.String(), at.AssetID, at.Amount, true)
 					}
 				}
 				if len(detailTxs) != 0 {
 					internalActions := detailTxs[i].InternalActions[j]
 					for _, iat := range internalActions.InternalLogs {
-						err := transfer(iat.Action.To.String(), iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx)
-						if err != nil {
-							ZapLog.Error("transfer error: ", zap.Error(err))
-							return err
+						if iat.Action.To.String() != "" && iat.Action.To.String() != config.Chain.ChainFeeName {
+							changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, false)
+						}
+						if iat.Action.From.String() != "" && iat.Action.From.String() != config.Chain.ChainFeeName {
+							changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, true)
 						}
 					}
 				}
+			}
+		}
+	}
+	bigZero := big.NewInt(0)
+	h := data.Block.Head.Number.Uint64()
+	ut := data.Block.Head.Time
+	for name, bs := range balanceChangedMap {
+		for assetId, v := range bs {
+			rs := v.Cmp(bigZero)
+			if rs > 0 {
+				addBalance(name, assetId, v, h, ut, dbTx, false)
+			} else if rs < 0 {
+				absv := v.Abs(v)
+				subBalance(name, assetId, absv, h, ut, dbTx)
 			}
 		}
 	}
@@ -198,11 +240,10 @@ func (b *BalanceTask) Start(data chan *TaskChanData, rollbackData chan *TaskChan
 		case rd := <-rollbackData:
 			b.startHeight--
 			if rd.Block.Block.Head.Number.Uint64() == b.startHeight {
-				fmt.Println("----", rd.Block.Block.Head.Number.Uint64(), b.startHeight)
 				b.init()
 				err := b.rollback(rd.Block, b.Tx)
 				if err != nil {
-					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("BalanceTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
 					panic(err)
 				}
 				b.commit()

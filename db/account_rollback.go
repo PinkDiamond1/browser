@@ -30,8 +30,8 @@ func InsertAccountRollback(data *MysqlAccountRollback, dbTx *sql.Tx) error {
 }
 
 func GetOldAccountByName(name string, dbTx *sql.Tx) (*MysqlAccountRollback, error) {
-	sqlstr := fmt.Sprintf("insert into account_rollback (s_name, parent_name, create_user, founder, account_id, account_number, nonce,author_version,threshold,update_author_threshold,permissions,created,"+
-		"contract_code,code_hash, contract_created,description,suicide,destroy, height FROM account where s_name = '%s order by height desc' ", name)
+	sqlstr := fmt.Sprintf("select s_name, parent_name, create_user, founder, account_id, account_number, nonce,author_version,threshold,update_author_threshold,permissions,created,"+
+		"contract_code,code_hash, contract_created,description,suicide,destroy, height FROM account_rollback where s_name = '%s' order by height desc limit 1", name)
 	row := dbTx.QueryRow(sqlstr)
 	a := &MysqlAccount{}
 	oa := &MysqlAccountRollback{
@@ -39,9 +39,6 @@ func GetOldAccountByName(name string, dbTx *sql.Tx) (*MysqlAccountRollback, erro
 	}
 	err := row.Scan(&a.Name, &a.ParentName, &a.CreateUser, &a.Founder, &a.AccountID, &a.Number, &a.Nonce, &a.AuthorVersion, &a.Threshold, &a.UpdateAuthorThreshold, &a.Permissions, &a.Created,
 		&a.ContractCode, &a.CodeHash, &a.ContractCreated, &a.Description, &a.Suicide, &a.Destroy, &oa.Height)
-	if err == sql.ErrNoRows {
-		return nil, err
-	}
 	if err != nil {
 		ZapLog.Error("GetAccount error", zap.String("sql", sqlstr))
 		return nil, err
@@ -51,7 +48,7 @@ func GetOldAccountByName(name string, dbTx *sql.Tx) (*MysqlAccountRollback, erro
 }
 
 func DeleteRollbackAccountByNameAndHeight(name string, height uint64, dbTx *sql.Tx) error {
-	stmt, err := dbTx.Prepare(fmt.Sprintf("delete from account_rollback where s_name = %s and height = %d", name, height))
+	stmt, err := dbTx.Prepare(fmt.Sprintf("delete from account_rollback where s_name = '%s' and height = %d", name, height))
 	defer stmt.Close()
 	if err != nil {
 		ZapLog.Panic("DeleteRollbackAccountByNameAndHeight error", zap.Error(err), zap.String("name", name))

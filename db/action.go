@@ -53,7 +53,7 @@ func InsertAction(data *MysqlAction, dbTx *sql.Tx) error {
 
 func DeleteActionByTxHash(hash types.Hash, dbTx *sql.Tx) error {
 	tName := GetTableNameHash("actions_hash", hash.String())
-	stmt, err := dbTx.Prepare(fmt.Sprintf("delete from %s where tx_hash = %s", tName, hash.String()))
+	stmt, err := dbTx.Prepare(fmt.Sprintf("delete from %s where tx_hash = '%s'", tName, hash.String()))
 	defer stmt.Close()
 	if err != nil {
 		ZapLog.Panic("DeleteActionByTxHash error", zap.Error(err), zap.String("txHash", hash.String()))

@@ -41,7 +41,7 @@ func InsertTransaction(data *MysqlTx, tx *sql.Tx) error {
 
 func DeleteTransactionByHash(hash types.Hash, tx *sql.Tx) error {
 	tName := GetTableNameHash("txs_hash", hash.String())
-	stmt, err := tx.Prepare(fmt.Sprintf("delete from %s where hash = %s", tName, hash.String()))
+	stmt, err := tx.Prepare(fmt.Sprintf("delete from %s where hash = '%s'", tName, hash.String()))
 	defer stmt.Close()
 	if err != nil {
 		ZapLog.Panic("DeleteTransactionByHash error", zap.Error(err), zap.String("hash", hash.String()))

@@ -44,7 +44,7 @@ func InsertFee(data *MysqlFee, dbTx *sql.Tx) error {
 
 func DeleteFeeByActionHash(actionHash types.Hash, dbTx *sql.Tx) error {
 	tName := GetTableNameHash("fee_actions_hash", actionHash.String())
-	stmt, err := dbTx.Prepare(fmt.Sprintf("delete from %s where action_hash = %s", tName, actionHash.String()))
+	stmt, err := dbTx.Prepare(fmt.Sprintf("delete from %s where action_hash = '%s'", tName, actionHash.String()))
 	defer stmt.Close()
 	if err != nil {
 		ZapLog.Panic("DeleteFeeByActionHash error", zap.Error(err), zap.String("actionHash", actionHash.String()))

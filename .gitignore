@@ -20,3 +20,4 @@ bin-release/
 .idea/
 resetDB-mac
 config.yaml
+build/

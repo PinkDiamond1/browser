@@ -102,6 +102,7 @@ func (i *InternalTask) Start(data chan *TaskChanData, rollbackData chan *TaskCha
 			}
 			result <- true
 		case rd := <-rollbackData:
+			i.startHeight--
 			if rd.Block.Block.Head.Number.Uint64() >= i.startHeight {
 				i.init()
 				err := i.rollback(rd.Block, i.Tx)
@@ -109,7 +110,6 @@ func (i *InternalTask) Start(data chan *TaskChanData, rollbackData chan *TaskCha
 					ZapLog.Error("InternalTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
 					panic(err)
 				}
-				i.startHeight--
 				i.commit()
 			}
 			result <- true

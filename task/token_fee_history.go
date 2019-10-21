@@ -83,6 +83,7 @@ func (a *TokenFeeHistoryTask) Start(data chan *TaskChanData, rollbackData chan *
 			}
 			result <- true
 		case rd := <-rollbackData:
+			a.startHeight--
 			if rd.Block.Block.Head.Number.Uint64() == a.startHeight {
 				a.init()
 				err := a.rollback(rd.Block, a.Tx)
@@ -90,7 +91,6 @@ func (a *TokenFeeHistoryTask) Start(data chan *TaskChanData, rollbackData chan *
 					ZapLog.Error("TokenFeeHistoryTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
 					panic(err)
 				}
-				a.startHeight--
 				a.commit()
 			}
 			result <- true

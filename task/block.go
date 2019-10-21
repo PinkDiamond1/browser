@@ -93,6 +93,7 @@ func (b *BlockTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanDa
 			}
 			result <- true
 		case rd := <-rollbackData:
+			b.startHeight--
 			if b.startHeight == rd.Block.Block.Head.Number.Uint64() {
 				b.init()
 				err := b.rollback(rd.Block, b.Tx)
@@ -100,7 +101,6 @@ func (b *BlockTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanDa
 					ZapLog.Error("AccountTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
 					panic(err)
 				}
-				b.startHeight--
 				b.commit()
 			}
 			result <- true

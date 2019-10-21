@@ -117,6 +117,7 @@ func (f *FeeTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanData
 			}
 			result <- true
 		case rd := <-rollbackData:
+			f.startHeight--
 			if f.startHeight == rd.Block.Block.Head.Number.Uint64() {
 				f.init()
 				err := f.rollback(rd.Block, f.Tx)
@@ -124,7 +125,6 @@ func (f *FeeTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanData
 					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
 					panic(err)
 				}
-				f.startHeight--
 				f.commit()
 			}
 			result <- true

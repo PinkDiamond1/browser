@@ -2,6 +2,7 @@ package task
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/browser/client"
 	"github.com/browser/config"
 	"github.com/browser/db"
@@ -16,6 +17,7 @@ type BalanceTask struct {
 }
 
 func subBalance(from string, assetId uint64, value *big.Int, h uint64, ut uint, dbTx *sql.Tx) error {
+
 	balance, err := db.GetAccountBalance(from, assetId, dbTx)
 	if err != nil {
 		ZapLog.Error("GetAccountBalance error: ", zap.Error(err), zap.String("from", from))
@@ -23,6 +25,7 @@ func subBalance(from string, assetId uint64, value *big.Int, h uint64, ut uint, 
 	}
 	amount := big.NewInt(0).Sub(balance, value)
 	if amount.Cmp(big.NewInt(0)) < 0 {
+		fmt.Println("---", balance.String(), value.String())
 		ZapLog.Error("from balance not enough", zap.String("from", from))
 		return BalanceNotEnough
 	}
@@ -142,15 +145,15 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	detailTxs := data.DetailTxs
 	for i, tx := range txs {
 		receipt := receipts[i]
-		detailTx := detailTxs[i]
 		for j, at := range tx.RPCActions {
 			actionReceipt := receipt.ActionResults[j]
-			internalActions := detailTx.InternalActions[j]
 			fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(actionReceipt.GasUsed), big.NewInt(0).SetUint64(tx.GasPrice.Uint64()))
-			err := addBalance(at.From.String(), tx.GasAssetID, fee, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx, false)
-			if err != nil {
-				ZapLog.Error("sub fee error: ", zap.Error(err), zap.String("fee from", at.From.String()))
-				return err
+			if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
+				err := addBalance(at.From.String(), tx.GasAssetID, fee, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx, false)
+				if err != nil {
+					ZapLog.Error("sub fee error: ", zap.Error(err), zap.String("fee from", at.From.String()))
+					return err
+				}
 			}
 			if actionReceipt.Status == types.ReceiptStatusSuccessful {
 				if at.Amount.Cmp(big.NewInt(0)) > 0 {
@@ -160,11 +163,14 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 						return err
 					}
 				}
-				for _, iat := range internalActions.InternalLogs {
-					err := transfer(iat.Action.To.String(), iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx)
-					if err != nil {
-						ZapLog.Error("transfer error: ", zap.Error(err))
-						return err
+				if len(detailTxs) != 0 {
+					internalActions := detailTxs[i].InternalActions[j]
+					for _, iat := range internalActions.InternalLogs {
+						err := transfer(iat.Action.To.String(), iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx)
+						if err != nil {
+							ZapLog.Error("transfer error: ", zap.Error(err))
+							return err
+						}
 					}
 				}
 			}
@@ -190,14 +196,15 @@ func (b *BalanceTask) Start(data chan *TaskChanData, rollbackData chan *TaskChan
 			}
 			result <- true
 		case rd := <-rollbackData:
-			if rd.Block.Block.Head.Number.Uint64() >= b.startHeight {
+			b.startHeight--
+			if rd.Block.Block.Head.Number.Uint64() == b.startHeight {
+				fmt.Println("----", rd.Block.Block.Head.Number.Uint64(), b.startHeight)
 				b.init()
-				err := b.rollback(rd.Block, rd.Tx)
+				err := b.rollback(rd.Block, b.Tx)
 				if err != nil {
 					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
 					panic(err)
 				}
-				b.startHeight--
 				b.commit()
 			}
 			result <- true

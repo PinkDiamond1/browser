@@ -110,7 +110,7 @@ func (a *ActionTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanD
 			a.startHeight--
 			if a.startHeight == rd.Block.Block.Head.Number.Uint64() {
 				a.init()
-				err := a.rollback(rd.Block, rd.Tx)
+				err := a.rollback(rd.Block, a.Tx)
 				if err != nil {
 					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
 					panic(err)

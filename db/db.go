@@ -3,14 +3,15 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"github.com/browser/config"
-	. "github.com/browser/log"
-	_ "github.com/go-sql-driver/mysql"
-	"go.uber.org/zap"
 	"math/big"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/browser/config"
+	. "github.com/browser/log"
+	_ "github.com/go-sql-driver/mysql"
+	"go.uber.org/zap"
 )
 
 var Mysql *mysql

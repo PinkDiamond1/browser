@@ -2,6 +2,7 @@ package task
 
 import (
 	"database/sql"
+
 	"github.com/browser/client"
 	"github.com/browser/db"
 	. "github.com/browser/log"
@@ -51,6 +52,7 @@ func (t *TokeHistoryTask) analysisTokenHistory(data *types.BlockAndResult, dbTx 
 					ActionHash:  aT.ActionHash.String(),
 					TxType:      0,
 					ActionType:  uint64(aT.Type),
+					Height:      block.Head.Number.Uint64(),
 				}
 				err = db.InsertTokenHistory(mTH, dbTx)
 				if err != nil {
@@ -89,6 +91,7 @@ func (t *TokeHistoryTask) analysisTokenHistory(data *types.BlockAndResult, dbTx 
 							InternalIndex: k,
 							TxType:        1,
 							ActionType:    uint64(iAt.Action.Type),
+							Height:        block.Head.Number.Uint64(),
 						}
 						err = db.InsertTokenHistory(mTH, dbTx)
 						if err != nil {

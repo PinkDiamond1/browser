@@ -175,7 +175,9 @@ func (d *Dispatch) sendBlockToTask() {
 				taskDataChan <- taskData
 			}
 			d.checkTaskResult()
-			ZapLog.Info("commit success", zap.String("height", block.Block.Head.Number.String()))
+			if block.Block.Head.Number.Int64()%config.Log.SyncBlockShowNumber == 0 {
+				ZapLog.Info("commit success", zap.Uint64("height", block.Block.Head.Number.Uint64()))
+			}
 		}
 	}()
 }
@@ -198,14 +200,14 @@ func (d *Dispatch) checkTaskResult() {
 func (d *Dispatch) rollback() {
 	d.isRollbackChan <- true
 	for {
-		isclear := false
+		isClear := false
 		select {
 		case <-d.blockDataChan:
 			time.Sleep(time.Duration(100) * time.Millisecond)
 		default:
-			isclear = true
+			isClear = true
 		}
-		if isclear {
+		if isClear {
 			break
 		}
 	}

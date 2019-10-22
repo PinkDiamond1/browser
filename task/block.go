@@ -70,9 +70,12 @@ func (b *BlockTask) rollback(d *types.BlockAndResult, dbTx *sql.Tx) error {
 		ZapLog.Panic("DeleteBlockTx error: ", zap.Error(err), zap.Uint64("height", height))
 		return err
 	}
-	err = db.UpdateBlockStatus(b.Tx, height)
+	data := map[string]interface{}{
+		"height": height,
+	}
+	err = db.UpdateChainStatus(dbTx, data)
 	if err != nil {
-		ZapLog.Panic("UpdateBlockStatus error: ", zap.Error(err), zap.Uint64("height", height))
+		ZapLog.Error("UpdateChainStatus error: ", zap.Error(err))
 		return err
 	}
 	return nil

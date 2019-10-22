@@ -16,7 +16,6 @@ type BalanceTask struct {
 }
 
 func subBalance(from string, assetId uint64, value *big.Int, h uint64, ut uint, dbTx *sql.Tx) error {
-
 	balance, err := db.GetAccountBalance(from, assetId, dbTx)
 	if err != nil {
 		ZapLog.Error("GetAccountBalance error: ", zap.Error(err), zap.String("from", from))
@@ -124,10 +123,19 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 		for assetId, v := range bs {
 			rs := v.Cmp(bigZero)
 			if rs > 0 {
-				addBalance(name, assetId, v, h, ut, dbTx, false)
+				err := addBalance(name, assetId, v, h, ut, dbTx, false)
+				if err != nil {
+					ZapLog.Error("addBalance error", zap.Error(err), zap.String("name", name), zap.Uint64("assetId", assetId))
+					return err
+				}
 			} else if rs < 0 {
 				absv := v.Abs(v)
-				subBalance(name, assetId, absv, h, ut, dbTx)
+				err := subBalance(name, assetId, absv, h, ut, dbTx)
+				if err != nil {
+					ZapLog.Error("subBalance error", zap.Error(err), zap.String("name", name), zap.Uint64("assetId", assetId))
+					return err
+				}
+
 			}
 		}
 	}
@@ -177,7 +185,7 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 			if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
 				err := addBalance(at.From.String(), tx.GasAssetID, fee, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx, false)
 				if err != nil {
-					ZapLog.Error("sub fee error: ", zap.Error(err), zap.String("fee from", at.From.String()))
+					ZapLog.Error("add fee error: ", zap.Error(err), zap.String("fee from", at.From.String()))
 					return err
 				}
 			}
@@ -211,10 +219,18 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 		for assetId, v := range bs {
 			rs := v.Cmp(bigZero)
 			if rs > 0 {
-				addBalance(name, assetId, v, h, ut, dbTx, false)
+				err := addBalance(name, assetId, v, h, ut, dbTx, false)
+				if err != nil {
+					ZapLog.Error("addBalance error", zap.Error(err), zap.String("name", name), zap.Uint64("assetId", assetId))
+					return err
+				}
 			} else if rs < 0 {
 				absv := v.Abs(v)
-				subBalance(name, assetId, absv, h, ut, dbTx)
+				err := subBalance(name, assetId, absv, h, ut, dbTx)
+				if err != nil {
+					ZapLog.Error("subBalance error", zap.Error(err), zap.String("name", name), zap.Uint64("assetId", assetId))
+					return err
+				}
 			}
 		}
 	}

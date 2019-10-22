@@ -160,7 +160,7 @@ func (d *Dispatch) sendBlockToTask() {
 					if d.currentBlock.Hash.String() != block.Block.Head.ParentHash.String() {
 						d.currentBlock = block
 						d.rollback()
-						ZapLog.Info("rollback success", zap.Uint64("height", block.Block.Head.Number.Uint64()))
+						ZapLog.Info("rollback success", zap.Uint64("height", block.Block.Head.Number.Uint64()-1))
 						continue
 					}
 					d.currentBlock = block

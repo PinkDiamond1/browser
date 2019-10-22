@@ -163,6 +163,7 @@ func (d *Dispatch) sendBlockToTask() {
 						continue
 					}
 					d.currentBlock = block
+					ZapLog.Info("rollback success", zap.Uint64("height", block.Block.Head.Number.Uint64()))
 				}
 			}
 

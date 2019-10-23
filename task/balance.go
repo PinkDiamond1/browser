@@ -103,10 +103,10 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 					internalActions := detailTxs[i].InternalActions[j]
 					for _, iat := range internalActions.InternalLogs {
 						if iat.Action.From.String() != "" && iat.Action.From.String() != config.Chain.ChainFeeName {
-							changeBalance(balanceChangedMap, iat.Action.From.String(), at.AssetID, at.Amount, false)
+							changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, false)
 						}
 						if iat.Action.To.String() != "" && iat.Action.To.String() != config.Chain.ChainFeeName {
-							changeBalance(balanceChangedMap, iat.Action.To.String(), at.AssetID, at.Amount, true)
+							changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, true)
 						}
 					}
 				}
@@ -243,7 +243,7 @@ func (b *BalanceTask) Start(data chan *TaskChanData, rollbackData chan *TaskChan
 				b.init()
 				err := b.analysisBalance(d.Block, b.Tx)
 				if err != nil {
-					ZapLog.Error("BalanceTask analysisAction error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("BalanceTask analysisBalance error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Head.Number.Uint64()))
 					panic(err)
 				}
 				b.startHeight++

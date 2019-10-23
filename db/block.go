@@ -10,39 +10,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// func (mysql *mysql) LoadBlockStatus() *TaskStatus {
-// 	sql := "select id, task_type, height from task_status where task_type in block"
-
-// 	rows, err := mysql.db.Query(sql)
-// 	if err != nil {
-// 		ZapLog.Error("LoadBlockStatus error", zap.Error(err))
-// 		panic("LoadBlockStatus error")
-// 	}
-// 	data := &TaskStatus{}
-// 	err = rows.Scan(&data.Id, &data.TaskType, &data.Height)
-// 	if err != nil {
-// 		ZapLog.Error("LoadBlockStatus error", zap.Error(err))
-// 		panic("LoadBlockStatus error")
-// 	}
-// 	return data
-// }
-
-func UpdateBlockStatus(dbTx *sql.Tx, height uint64) error {
-	stmt, err := dbTx.Prepare(fmt.Sprintf("update task_status set height = %d", height))
-	defer stmt.Close()
-	if err != nil {
-		ZapLog.Error("UpdateBlockStatus error", zap.Error(err), zap.Uint64("height", height))
-		return err
-	}
-
-	_, err = stmt.Exec()
-	if err != nil {
-		ZapLog.Error("UpdateBlockStatus error", zap.Error(err), zap.Uint64("height", height))
-		return err
-	}
-	return nil
-}
-
 func InsertBlockChain(tx *sql.Tx, hd *types.Header, bhash types.Hash, fee *big.Int, txCount int) error {
 	tName := GetTableNameID1("block_id", hd.Number.Uint64())
 	blocksql := fmt.Sprintf("INSERT INTO %s(hash, parent_hash, height, created, gas_limit, gas_used, producer, tx_count ,fee) VALUES('%s','%s',%d,%d,%d,%d,'%s',%d,'%s');",

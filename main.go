@@ -11,8 +11,8 @@ import (
 )
 
 func main() {
-	dispatch.NewDispatch().Start()
 	SignalHandler()
+	dispatch.NewDispatch().Start()
 }
 
 func SignalHandler() {

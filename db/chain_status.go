@@ -53,4 +53,18 @@ func UpdateChainStatus(dbTx *sql.Tx, values map[string]interface{}) error {
 	return nil
 }
 
-
+func GetChainStatus(dbTx *sql.Tx) (*MysqlChainStatus, error) {
+	querySql := "select height,tx_count,producer_number,fee_income,token_income,contract_income FROM chain_status"
+	row := dbTx.QueryRow(querySql)
+	a := &MysqlChainStatus{}
+	var totalIncome, tokenIncome, contractIncome string
+	err := row.Scan(&a.Height, &a.TxCount, &a.ProducerNumber, &totalIncome, &tokenIncome, &contractIncome)
+	if err != nil {
+		ZapLog.Error("GetChainStatus error", zap.String("sql", querySql))
+		return nil, err
+	}
+	a.FeeIncome, _ = big.NewInt(0).SetString(totalIncome, 10)
+	a.TokenIncome, _ = big.NewInt(0).SetString(tokenIncome, 10)
+	a.ContractIncome, _ = big.NewInt(0).SetString(contractIncome, 10)
+	return a, nil
+}

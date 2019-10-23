@@ -24,6 +24,9 @@ func GetAccountBalance(name string, assetId uint64, dbTx *sql.Tx) (*big.Int, err
 		tName, name, assetId)
 	row := dbTx.QueryRow(querySql)
 	err := row.Scan(&balance)
+	if err == sql.ErrNoRows {
+		return nil, err
+	}
 	if err != nil {
 		ZapLog.Error("getAccountAssetBalance failed", zap.Error(err), zap.String("sql", querySql))
 		return nil, err

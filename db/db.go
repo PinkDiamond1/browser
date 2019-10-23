@@ -119,10 +119,11 @@ type BlockOriginal struct {
 }
 
 func (mysql *mysql) GetBlockOriginalByHeight(height uint64) *BlockOriginal {
-	stmt, err := mysql.db.Prepare("select id, block_data, height, block_hash, parent_hash from block_rollback where height = ?")
+	querySql := "select id, block_data, height, block_hash, parent_hash from block_rollback where height = ?"
+	stmt, err := mysql.db.Prepare(querySql)
 	defer stmt.Close()
 	if err != nil {
-		ZapLog.Panic("prepare query block_rollback error", zap.Error(err))
+		ZapLog.Panic("prepare query block_rollback error", zap.Error(err), zap.String("sql", querySql))
 	}
 
 	row := stmt.QueryRow(height)

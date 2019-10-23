@@ -34,16 +34,13 @@ func subBalance(from string, assetId uint64, value *big.Int, h uint64, ut uint, 
 	return nil
 }
 
-func addBalance(to string, assetId uint64, value *big.Int, h uint64, ut uint, dbTx *sql.Tx, careAsset bool) error {
+func addBalance(to string, assetId uint64, value *big.Int, h uint64, ut uint, dbTx *sql.Tx) error {
 	balance, err := db.GetAccountBalance(to, assetId, dbTx)
 	if err != nil && err != sql.ErrNoRows {
 		ZapLog.Error("Transfer error: ", zap.Error(err), zap.String("to", to))
 		return err
 	}
 	if err == sql.ErrNoRows {
-		if careAsset {
-			return err
-		}
 		err = db.InsertAccountBalance(to, value, assetId, h, ut, dbTx)
 		if err != nil {
 			ZapLog.Error("Transfer error: ", zap.Error(err), zap.String("to", to))
@@ -123,7 +120,7 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 		for assetId, v := range bs {
 			rs := v.Cmp(bigZero)
 			if rs > 0 {
-				err := addBalance(name, assetId, v, h, ut, dbTx, false)
+				err := addBalance(name, assetId, v, h, ut, dbTx)
 				if err != nil {
 					ZapLog.Error("addBalance error", zap.Error(err), zap.String("name", name), zap.Uint64("assetId", assetId))
 					return err
@@ -183,7 +180,7 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 			actionReceipt := receipt.ActionResults[j]
 			fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(actionReceipt.GasUsed), big.NewInt(0).SetUint64(tx.GasPrice.Uint64()))
 			if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
-				err := addBalance(at.From.String(), tx.GasAssetID, fee, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx, false)
+				err := addBalance(at.From.String(), tx.GasAssetID, fee, data.Block.Head.Number.Uint64(), data.Block.Head.Time, dbTx)
 				if err != nil {
 					ZapLog.Error("add fee error: ", zap.Error(err), zap.String("fee from", at.From.String()))
 					return err
@@ -219,7 +216,7 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 		for assetId, v := range bs {
 			rs := v.Cmp(bigZero)
 			if rs > 0 {
-				err := addBalance(name, assetId, v, h, ut, dbTx, false)
+				err := addBalance(name, assetId, v, h, ut, dbTx)
 				if err != nil {
 					ZapLog.Error("addBalance error", zap.Error(err), zap.String("name", name), zap.Uint64("assetId", assetId))
 					return err

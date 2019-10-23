@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+
 	. "github.com/browser/log"
 	"go.uber.org/zap"
 )
@@ -59,4 +60,12 @@ func DeleteRollbackAccountByNameAndHeight(name string, height uint64, dbTx *sql.
 		ZapLog.Panic("DeleteRollbackAccountByNameAndHeight error", zap.Error(err), zap.String("name", name))
 	}
 	return nil
+}
+
+func DeleteRollbackAccountByHeight(height uint64) {
+	sql := fmt.Sprintf("delete from account_rollback where height <= %d", height)
+	_, err := Mysql.db.Exec(sql)
+	if err != nil {
+		ZapLog.Panic("DeleteRollbackAccountByHeight error", zap.Error(err))
+	}
 }

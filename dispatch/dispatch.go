@@ -63,6 +63,9 @@ func (d *Dispatch) Start() {
 	//batch pull block
 	d.batchPullIrreversibleBlock()
 
+	//delete roolback backup data
+	go deleteRollback()
+
 	//start a single block pull task
 	isRollback := false
 	startHeight := d.batchTo
@@ -244,10 +247,8 @@ func (d *Dispatch) cacheBlock(blockData *task.TaskChanData) {
 		if err != nil {
 			ZapLog.Panic("cache block data error", zap.Error(err))
 		}
-
 		if blockData.Block.Block.Head.Number.Uint64() > irreversible.BftIrreversible {
 			db.AddReversibleBlockCache(BlockToBlob(blockData.Block))
-			db.DeleteIrreversibleCache(irreversible.BftIrreversible)
 		}
 	}
 }
@@ -273,4 +274,21 @@ func BlockToBlob(block *types.BlockAndResult) *db.BlockOriginal {
 		ParentHash: block.Block.Head.ParentHash.String(),
 	}
 	return result
+}
+
+func deleteRollback() {
+	lastDeteteTime := time.Now().Add(time.Hour)
+	for {
+		if time.Now().Unix() > lastDeteteTime.Unix() {
+			lastDeteteTime = lastDeteteTime.Add(time.Hour)
+			irreversible, err := client.GetDposIrreversible()
+			if err != nil {
+				ZapLog.Panic("cache block data error", zap.Error(err))
+			}
+			db.DeleteRollbackAccountByHeight(irreversible.BftIrreversible)
+			db.DeleteIrreversibleCache(irreversible.BftIrreversible)
+			db.DeleteTokenBackupByHeight(irreversible.BftIrreversible)
+		}
+		time.Sleep(time.Second * 60)
+	}
 }

@@ -119,37 +119,37 @@ type BlockOriginal struct {
 }
 
 func (mysql *mysql) GetBlockOriginalByHeight(height uint64) *BlockOriginal {
-	stmt, err := mysql.db.Prepare("select id, block_data, height, block_hash, parent_hash from block_original where height = ?")
+	stmt, err := mysql.db.Prepare("select id, block_data, height, block_hash, parent_hash from block_rollback where height = ?")
 	defer stmt.Close()
 	if err != nil {
-		ZapLog.Panic("prepare query block_original error", zap.Error(err))
+		ZapLog.Panic("prepare query block_rollback error", zap.Error(err))
 	}
 
 	row := stmt.QueryRow(height)
 	result := &BlockOriginal{}
 	err = row.Scan(&result.Id, &result.BlockData, &result.Height, &result.BlockHash, &result.ParentHash)
 	if err != nil {
-		ZapLog.Panic("query block_original error", zap.Error(err))
+		ZapLog.Panic("query block_rollback error", zap.Error(err))
 	}
 	return result
 }
 
 func AddReversibleBlockCache(block *BlockOriginal) {
-	stmt, err := Mysql.db.Prepare("insert into block_original (block_data, height, block_hash, parent_hash) values (?, ?, ?, ?)")
+	stmt, err := Mysql.db.Prepare("insert into block_rollback (block_data, height, block_hash, parent_hash) values (?, ?, ?, ?)")
 	defer stmt.Close()
 	if err != nil {
-		ZapLog.Panic("prepare insert block_original error")
+		ZapLog.Panic("prepare insert block_rollback error")
 	}
 
 	_, err = stmt.Exec(block.BlockData, block.Height, block.BlockHash, block.ParentHash)
 	if err != nil {
-		ZapLog.Panic("insert block_original error", zap.Error(err))
+		ZapLog.Panic("insert block_rollback error", zap.Error(err))
 	}
 
 }
 
 func DeleteIrreversibleCache(height uint64) {
-	stmt, err := Mysql.db.Prepare("delete from block_original where height <= ?")
+	stmt, err := Mysql.db.Prepare("delete from block_rollback where height <= ?")
 	defer stmt.Close()
 	if err != nil {
 		ZapLog.Panic("prepare delete irreversible cache error", zap.Error(err))
@@ -159,11 +159,10 @@ func DeleteIrreversibleCache(height uint64) {
 	if err != nil {
 		ZapLog.Panic("delete irreversible cache error", zap.Error(err))
 	}
-
 }
 
 func DeleteOverOriginalBlock(height uint64) {
-	stmt, err := Mysql.db.Prepare("delete from block_original where height >= ?")
+	stmt, err := Mysql.db.Prepare("delete from block_rollback where height >= ?")
 	defer stmt.Close()
 	if err != nil {
 		ZapLog.Panic("prepare delete irreversible cache error", zap.Error(err))

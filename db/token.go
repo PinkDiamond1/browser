@@ -123,36 +123,44 @@ func DeleteTokenByName(tx *sql.Tx, assetName string) {
 }
 
 func AddBackupToken(tx *sql.Tx, token *Token, height uint64) {
-	stmt, err := tx.Prepare("insert into token_backup (height, asset_name, asset_symbol, decimals, asset_id, contract_name, description, create_user, create_time, asset_owner, founder, upper_limit, liquidity, cumulative_issue, cumulative_destruction, update_time) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := tx.Prepare("insert into token_rollback (height, asset_name, asset_symbol, decimals, asset_id, contract_name, description, create_user, create_time, asset_owner, founder, upper_limit, liquidity, cumulative_issue, cumulative_destruction, update_time) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	defer stmt.Close()
 	if err != nil {
-		ZapLog.Panic("prepare insert token_backup error", zap.Error(err), zap.String("token", fmt.Sprint(token)))
+		ZapLog.Panic("prepare insert token_rollback error", zap.Error(err), zap.String("token", fmt.Sprint(token)))
 	}
 
 	_, err = stmt.Exec(height, token.AssetName, token.AssetSymbol, token.Decimals, token.AssetId, token.ContractName, token.Description, token.CreateUser, token.CreateTime, token.AssetOwner, token.Founder, token.UpperLimit.String(), token.Liquidity.String(), token.CumulativeIssue.String(), token.CumulativeDestruction.String(), token.UpdateTime)
 	if err != nil {
-		ZapLog.Panic("insert token_backup error", zap.Error(err), zap.String("token", fmt.Sprint(token)))
+		ZapLog.Panic("insert token_rollback error", zap.Error(err), zap.String("token", fmt.Sprint(token)))
 	}
 }
 
-func DeleteTokenBackupByHeightName(tx *sql.Tx, assetName string, height uint64) {
-	stmt, err := tx.Prepare("delete from token_backup where height = ? and asset_name = ? ")
-	defer stmt.Close()
-	if err != nil {
-		ZapLog.Panic("prepare delete token_backup error", zap.Error(err), zap.String("asset_name", assetName))
-	}
+// func DeleteTokenBackupByHeightName(tx *sql.Tx, assetName string, height uint64) {
+// 	stmt, err := tx.Prepare("delete from token_rollback where height = ? and asset_name = ? ")
+// 	defer stmt.Close()
+// 	if err != nil {
+// 		ZapLog.Panic("prepare delete token_rollback error", zap.Error(err), zap.String("asset_name", assetName))
+// 	}
 
-	_, err = stmt.Exec(height, assetName)
+// 	_, err = stmt.Exec(height, assetName)
+// 	if err != nil {
+// 		ZapLog.Panic("prepare delete token_rollback error", zap.Error(err), zap.String("asset_name", assetName))
+// 	}
+// }
+
+func DeleteTokenBackupByHeight(height uint64) {
+	sql := fmt.Sprintf("delete from token_rollback where height <= %d", height)
+	_, err := Mysql.db.Exec(sql)
 	if err != nil {
-		ZapLog.Panic("prepare delete token_backup error", zap.Error(err), zap.String("asset_name", assetName))
+		ZapLog.Panic("DeleteTokenBackupByHeight error", zap.Error(err))
 	}
 }
 
 func QueryTokenBackupById(tx *sql.Tx, assetId uint64, height uint64) *Token {
-	stmt, err := tx.Prepare("select id, asset_name, asset_symbol, decimals, asset_id, contract_name, description, create_user, create_time, asset_owner, founder, upper_limit, liquidity, cumulative_issue, cumulative_destruction, update_time from token_backup where asset_id = ? and height = ? ")
+	stmt, err := tx.Prepare("select id, asset_name, asset_symbol, decimals, asset_id, contract_name, description, create_user, create_time, asset_owner, founder, upper_limit, liquidity, cumulative_issue, cumulative_destruction, update_time from token_rollback where asset_id = ? and height = ? ")
 	defer stmt.Close()
 	if err != nil {
-		ZapLog.Panic("prepare select token_backup by asset name error", zap.Error(err), zap.Uint64("assetId", assetId))
+		ZapLog.Panic("prepare select token_rollback by asset name error", zap.Error(err), zap.Uint64("assetId", assetId))
 	}
 
 	row := stmt.QueryRow(assetId, height)
@@ -160,7 +168,7 @@ func QueryTokenBackupById(tx *sql.Tx, assetId uint64, height uint64) *Token {
 	var UpperLimit, Liquidity, CumulativeIssue, CumulativeDestruction string
 	err = row.Scan(&token.Id, &token.AssetName, &token.AssetSymbol, &token.Decimals, &token.AssetId, &token.ContractName, &token.Description, &token.CreateUser, &token.CreateTime, &token.AssetOwner, &token.Founder, &UpperLimit, &Liquidity, &CumulativeIssue, &CumulativeDestruction, &token.UpdateTime)
 	if err != nil {
-		ZapLog.Panic("select token_backup by asset id error", zap.Error(err), zap.Uint64("assetName", assetId))
+		ZapLog.Panic("select token_rollback by asset id error", zap.Error(err), zap.Uint64("assetName", assetId))
 	}
 	token.UpperLimit, _ = big.NewInt(0).SetString(UpperLimit, 10)
 	token.Liquidity, _ = big.NewInt(0).SetString(Liquidity, 10)

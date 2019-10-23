@@ -131,30 +131,6 @@ CREATE TABLE IF NOT EXISTS account (
   PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS account_rollback (
-  id INT(11) NOT NULL AUTO_INCREMENT,
-  s_name VARCHAR(100),
-  parent_name VARCHAR(100),
-  create_user VARCHAR(100),
-  founder VARCHAR(100) NOT NULL,
-  account_id INT(11) NOT NULL,
-  account_number INT(11) NOT NULL,
-  nonce INT(11) NOT NULL,
-  author_version VARCHAR(100),
-  threshold INT(11) NOT NULL,
-  update_author_threshold INT(11) NOT NULL,
-  permissions longtext NOT NULL,
-  created INT(11) NOT NULL,
-  contract_code longtext,
-  code_hash VARCHAR(100),
-  contract_created INT(11) DEFAULT 0,
-  description BLOB,
-  suicide INT(11) NOT NULL,
-  destroy INT(11) NOT NULL,
-  height INT(11) NOT NULL,
-  PRIMARY KEY (id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE IF NOT EXISTS balance_hash (
   id INT(11) NOT NULL AUTO_INCREMENT,
   account_name VARCHAR(100) NOT NULL,
@@ -222,20 +198,9 @@ CREATE TABLE IF NOT EXISTS token_fee_history_id (
   action_hash VARCHAR(100) NOT NULL,
   fee_action_index int(11) NOT NULL,
   height INT(11) NOT NULL,
-  KEY `token_id` (`token_id`),
   KEY `token_id_height` (`token_id`,`height`),
   PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS block_original (
-  id INT(11) NOT NULL AUTO_INCREMENT,
-  block_data LONGBLOB NOT NULL,
-  height INT(11) NOT NULL,
-  block_hash VARCHAR(100) NOT NULL,
-  parent_hash VARCHAR(100) NOT NULL,
-  PRIMARY KEY (id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 
 CREATE TABLE IF NOT EXISTS task_status (
   id INT(11) NOT NULL AUTO_INCREMENT,
@@ -244,7 +209,53 @@ CREATE TABLE IF NOT EXISTS task_status (
   PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS token_backup (
+CREATE TABLE IF NOT EXISTS chain_status (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  height INT(11) NOT NULL,
+  tx_count INT(11) NOT NULL,
+  producer_number INT(11) NOT NULL,
+  fee_income VARCHAR(100) NOT NULL,
+  token_income VARCHAR(100) NOT NULL,
+  contract_income VARCHAR(100) NOT NULL,
+  PRIMARY KEY (id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS block_rollback (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  block_data LONGBLOB NOT NULL,
+  height INT(11) NOT NULL,
+  block_hash VARCHAR(100) NOT NULL,
+  parent_hash VARCHAR(100) NOT NULL,
+  KEY `key_height` (`height`),
+  PRIMARY KEY (id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS account_rollback (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  s_name VARCHAR(100),
+  parent_name VARCHAR(100),
+  create_user VARCHAR(100),
+  founder VARCHAR(100) NOT NULL,
+  account_id INT(11) NOT NULL,
+  account_number INT(11) NOT NULL,
+  nonce INT(11) NOT NULL,
+  author_version VARCHAR(100),
+  threshold INT(11) NOT NULL,
+  update_author_threshold INT(11) NOT NULL,
+  permissions longtext NOT NULL,
+  created INT(11) NOT NULL,
+  contract_code longtext,
+  code_hash VARCHAR(100),
+  contract_created INT(11) DEFAULT 0,
+  description BLOB,
+  suicide INT(11) NOT NULL,
+  destroy INT(11) NOT NULL,
+  height INT(11) NOT NULL,
+  KEY `height_asset_name` (`height`,`s_name`),
+  PRIMARY KEY (id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS token_rollback (
   id INT(11) NOT NULL AUTO_INCREMENT,
   height INT(11) NOT NULL,
   asset_name VARCHAR(100) NOT NULL,
@@ -262,18 +273,6 @@ CREATE TABLE IF NOT EXISTS token_backup (
   cumulative_issue VARCHAR(100) NOT NULL,
   cumulative_destruction VARCHAR(100) NOT NULL,
   update_time INT(11) NOT NULL,
-  KEY `height_index` (`height`) USING BTREE,
   KEY `height_asset_name` (`height`,`asset_name`),
-  PRIMARY KEY (id)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS chain_status (
-  id INT(11) NOT NULL AUTO_INCREMENT,
-  height INT(11) NOT NULL,
-  tx_count INT(11) NOT NULL,
-  producer_number INT(11) NOT NULL,
-  fee_income VARCHAR(100) NOT NULL,
-  token_income VARCHAR(100) NOT NULL,
-  contract_income VARCHAR(100) NOT NULL,
   PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -133,6 +133,7 @@ func GetData(method string, outData interface{}, params ...interface{}) error {
 	}
 	result := jsonParsed.Path("result")
 	if result.Data() == nil {
+		ZapLog.Error("GetData null", zap.Error(err), zap.String("method", method))
 		return err
 	}
 	err = json.Unmarshal([]byte(result.String()), outData)

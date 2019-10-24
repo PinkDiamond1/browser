@@ -21,7 +21,7 @@ func (t *TokenTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanDa
 	for {
 		select {
 		case block := <-data:
-			if block.Block.Block.Head.Number.Uint64() >= t.startHeight {
+			if block.Block.Block.Number.Uint64() >= t.startHeight {
 				t.init()
 				block.Tx = t.Tx
 				t.analysisToken(block)
@@ -31,7 +31,7 @@ func (t *TokenTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanDa
 			result <- true
 		case block := <-rollbackData:
 			t.startHeight--
-			if t.startHeight == block.Block.Block.Head.Number.Uint64() {
+			if t.startHeight == block.Block.Block.Number.Uint64() {
 				t.init()
 				block.Tx = t.Tx
 				t.rollback(block)
@@ -84,7 +84,7 @@ func (t *TokenTask) analysisToken(block *TaskChanData) {
 							isbackup = 1
 						}
 					}
-					saveToken(block.Tx, action, block.Block.Block.Head.Time, block.Block.Block.Head.Number.Uint64(), isbackup)
+					saveToken(block.Tx, action, block.Block.Block.Time, block.Block.Block.Number.Uint64(), isbackup)
 				}
 			}
 		}
@@ -105,7 +105,7 @@ func (t *TokenTask) analysisToken(block *TaskChanData) {
 								isbackup = 1
 							}
 						}
-						saveToken(block.Tx, internalLog.Action, block.Block.Block.Head.Time, block.Block.Block.Head.Number.Uint64(), isbackup)
+						saveToken(block.Tx, internalLog.Action, block.Block.Block.Time, block.Block.Block.Number.Uint64(), isbackup)
 					}
 				}
 			}
@@ -121,7 +121,7 @@ func (t *TokenTask) rollback(block *TaskChanData) {
 		for j, action := range tx.RPCActions {
 			if receipts[i].ActionResults[j].Status == types.ReceiptStatusSuccessful {
 				if t.isTokenTxs(action.Type) {
-					rollbackToken(block.Tx, action, block.Block.Block.Head.Time, block.Block.Block.Head.Number.Uint64())
+					rollbackToken(block.Tx, action, block.Block.Block.Time, block.Block.Block.Number.Uint64())
 				}
 			}
 		}
@@ -134,7 +134,7 @@ func (t *TokenTask) rollback(block *TaskChanData) {
 			if receipts[i].ActionResults[j].Status == types.ReceiptStatusSuccessful {
 				for _, internalLog := range action.InternalLogs {
 					if t.isTokenTxs(internalLog.Action.Type) {
-						rollbackToken(block.Tx, internalLog.Action, block.Block.Block.Head.Time, block.Block.Block.Head.Number.Uint64())
+						rollbackToken(block.Tx, internalLog.Action, block.Block.Block.Time, block.Block.Block.Number.Uint64())
 					}
 				}
 			}
@@ -143,7 +143,7 @@ func (t *TokenTask) rollback(block *TaskChanData) {
 	}
 }
 
-func saveToken(tx *sql.Tx, action *types.RPCAction, blockTime uint, height uint64, backup int) {
+func saveToken(tx *sql.Tx, action *types.RPCAction, blockTime uint64, height uint64, backup int) {
 	iActionAsset, _ := parsePayload(action)
 	if action.Type == types.IssueAsset {
 		obj := iActionAsset.(types.IssueAssetObject)
@@ -226,7 +226,7 @@ func saveToken(tx *sql.Tx, action *types.RPCAction, blockTime uint, height uint6
 	}
 }
 
-func rollbackToken(tx *sql.Tx, action *types.RPCAction, blockTime uint, height uint64) {
+func rollbackToken(tx *sql.Tx, action *types.RPCAction, blockTime uint64, height uint64) {
 	iActionAsset, _ := parsePayload(action)
 	if action.Type == types.IssueAsset {
 		obj := iActionAsset.(types.IssueAssetObject)

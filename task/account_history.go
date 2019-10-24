@@ -32,7 +32,7 @@ func (a *AccountHistoryTask) analysisAccountHistory(data *types.BlockAndResult, 
 					ActionHash:  action.ActionHash.String(),
 					ActionIndex: j,
 					TxType:      aType,
-					Height:      block.Head.Number.Uint64(),
+					Height:      block.Number.Uint64(),
 				}
 				err := db.InsertAccountHistory(mAccountHistory, dbTx)
 				if err != nil {
@@ -50,7 +50,7 @@ func (a *AccountHistoryTask) analysisAccountHistory(data *types.BlockAndResult, 
 					ActionHash:  action.ActionHash.String(),
 					ActionIndex: j,
 					TxType:      aType,
-					Height:      block.Head.Number.Uint64(),
+					Height:      block.Number.Uint64(),
 				}
 				err := db.InsertAccountHistory(mAccountHistory, dbTx)
 				if err != nil {
@@ -83,7 +83,7 @@ func (a *AccountHistoryTask) analysisAccountHistory(data *types.BlockAndResult, 
 						ActionIndex: j,
 						OtherIndex:  k,
 						TxType:      aType,
-						Height:      block.Head.Number.Uint64(),
+						Height:      block.Number.Uint64(),
 					}
 					err := db.InsertAccountHistory(mAccountHistory, dbTx)
 					if err != nil {
@@ -102,7 +102,7 @@ func (a *AccountHistoryTask) analysisAccountHistory(data *types.BlockAndResult, 
 						ActionIndex: j,
 						OtherIndex:  k,
 						TxType:      aType,
-						Height:      block.Head.Number.Uint64(),
+						Height:      block.Number.Uint64(),
 					}
 					err := db.InsertAccountHistory(mAccountHistory, dbTx)
 					if err != nil {
@@ -125,7 +125,7 @@ func (a *AccountHistoryTask) analysisAccountHistory(data *types.BlockAndResult, 
 					ActionIndex: j,
 					OtherIndex:  k,
 					TxType:      aType,
-					Height:      block.Head.Number.Uint64(),
+					Height:      block.Number.Uint64(),
 				}
 				err := db.InsertAccountHistory(mAccountHistory, dbTx)
 				if err != nil {
@@ -140,7 +140,7 @@ func (a *AccountHistoryTask) analysisAccountHistory(data *types.BlockAndResult, 
 
 func (a *AccountHistoryTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	block := data.Block
-	height := block.Head.Number.Uint64()
+	height := block.Number.Uint64()
 	for _, tx := range block.Txs {
 		for _, action := range tx.RPCActions {
 			if action.From.String() != "" {
@@ -196,11 +196,11 @@ func (a *AccountHistoryTask) Start(data chan *TaskChanData, rollbackData chan *T
 	for {
 		select {
 		case d := <-data:
-			if d.Block.Block.Head.Number.Uint64() >= a.startHeight {
+			if d.Block.Block.Number.Uint64() >= a.startHeight {
 				a.init()
 				err := a.analysisAccountHistory(d.Block, a.Tx)
 				if err != nil {
-					ZapLog.Error("ActionTask analysisAction error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("ActionTask analysisAction error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				a.startHeight++
@@ -209,11 +209,11 @@ func (a *AccountHistoryTask) Start(data chan *TaskChanData, rollbackData chan *T
 			result <- true
 		case rd := <-rollbackData:
 			a.startHeight--
-			if a.startHeight == rd.Block.Block.Head.Number.Uint64() {
+			if a.startHeight == rd.Block.Block.Number.Uint64() {
 				a.init()
 				err := a.rollback(rd.Block, a.Tx)
 				if err != nil {
-					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				a.commit()

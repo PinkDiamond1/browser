@@ -18,14 +18,14 @@ type Token struct {
 	ContractName          string
 	Description           string
 	CreateUser            string
-	CreateTime            uint
+	CreateTime            uint64
 	AssetOwner            string
 	Founder               string
 	UpperLimit            *big.Int
 	Liquidity             *big.Int
 	CumulativeIssue       *big.Int
 	CumulativeDestruction *big.Int
-	UpdateTime            uint
+	UpdateTime            uint64
 }
 
 func AddToken(tx *sql.Tx, token *Token) {

@@ -36,7 +36,7 @@ func GetAccountBalance(name string, assetId uint64, dbTx *sql.Tx) (*big.Int, err
 	return data, nil
 }
 
-func UpdateAccountBalance(name string, amount *big.Int, assetId uint64, updateHeight uint64, updateTime uint, dbTx *sql.Tx) error {
+func UpdateAccountBalance(name string, amount *big.Int, assetId uint64, updateHeight uint64, updateTime uint64, dbTx *sql.Tx) error {
 	tName := GetTableNameHash("balance_hash", name)
 	updateSql := fmt.Sprintf("update %s set amount = '%s', update_height = %d, update_time = %d where account_name = '%s' and asset_id = %d",
 		tName, amount.String(), updateHeight, updateTime, name, assetId)
@@ -48,7 +48,7 @@ func UpdateAccountBalance(name string, amount *big.Int, assetId uint64, updateHe
 	return nil
 }
 
-func InsertAccountBalance(name string, amount *big.Int, assetId uint64, height uint64, updateTime uint, dbTx *sql.Tx) error {
+func InsertAccountBalance(name string, amount *big.Int, assetId uint64, height uint64, updateTime uint64, dbTx *sql.Tx) error {
 	tName := GetTableNameHash("balance_hash", name)
 	insertSql := fmt.Sprintf("insert %s set account_name = '%s', asset_id = %d, amount = '%s', update_height = %d, update_time = %d",
 		tName, name, assetId, amount.String(), height, updateTime)

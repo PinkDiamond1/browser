@@ -29,8 +29,8 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 					ActionHash:  at.ActionHash.String(),
 					ActionIndex: j,
 					FeeIndex:    k,
-					Height:      data.Block.Head.Number.Uint64(),
-					Created:     data.Block.Head.Time,
+					Height:      data.Block.Number.Uint64(),
+					Created:     data.Block.Time,
 					AssetId:     tx.GasAssetID,
 					From:        at.From.String(),
 					To:          aR.Account.String(),
@@ -68,7 +68,7 @@ func (f *FeeTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 		for j, at := range tx.RPCActions {
 			err := db.DeleteFeeByActionHash(at.ActionHash, dbTx)
 			if err != nil {
-				ZapLog.Error("DeleteFeeByActionHash error:", zap.Error(err), zap.Uint64("height", data.Block.Head.Number.Uint64()))
+				ZapLog.Error("DeleteFeeByActionHash error:", zap.Error(err), zap.Uint64("height", data.Block.Number.Uint64()))
 				return err
 			}
 			aRs := data.Receipts[i].ActionResults[j].GasAllot
@@ -105,11 +105,11 @@ func (f *FeeTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanData
 	for {
 		select {
 		case d := <-data:
-			if d.Block.Block.Head.Number.Uint64() >= f.startHeight {
+			if d.Block.Block.Number.Uint64() >= f.startHeight {
 				f.init()
 				err := f.analysisFeeAction(d.Block, f.Tx)
 				if err != nil {
-					ZapLog.Error("FeeTask analysisFeeAction error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("FeeTask analysisFeeAction error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				f.startHeight++
@@ -118,11 +118,11 @@ func (f *FeeTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanData
 			result <- true
 		case rd := <-rollbackData:
 			f.startHeight--
-			if f.startHeight == rd.Block.Block.Head.Number.Uint64() {
+			if f.startHeight == rd.Block.Block.Number.Uint64() {
 				f.init()
 				err := f.rollback(rd.Block, f.Tx)
 				if err != nil {
-					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				f.commit()

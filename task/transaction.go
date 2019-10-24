@@ -22,12 +22,12 @@ func (b *TransactionTask) analysisTransaction(data *types.BlockAndResult, dbTx *
 		receipt := receipts[i]
 		mTx := &db.MysqlTx{
 			Hash:        tx.Hash.String(),
-			Height:      block.Head.Number.Uint64(),
+			Height:      block.Number.Uint64(),
 			GasUsed:     receipt.TotalGasUsed,
 			GasCost:     tx.GasCost,
 			GasPrice:    tx.GasPrice,
 			GasAssetId:  tx.GasAssetID,
-			BlockHash:   data.Hash.String(),
+			BlockHash:   data.Block.Hash.String(),
 			TxIndex:     i,
 			ActionCount: len(tx.RPCActions),
 		}
@@ -40,7 +40,7 @@ func (b *TransactionTask) analysisTransaction(data *types.BlockAndResult, dbTx *
 		mTx.State = state
 		err := db.InsertTransaction(mTx, dbTx)
 		if err != nil {
-			ZapLog.Error("InsertTransaction error: ", zap.Error(err), zap.Uint64("height", block.Head.Number.Uint64()), zap.Int("txIndex", i))
+			ZapLog.Error("InsertTransaction error: ", zap.Error(err), zap.Uint64("height", block.Number.Uint64()), zap.Int("txIndex", i))
 			return err
 		}
 		fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(mTx.GasUsed), mTx.GasPrice)
@@ -64,7 +64,7 @@ func (b *TransactionTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) err
 		receipt := data.Receipts[i]
 		err := db.DeleteTransactionByHash(tx.Hash, dbTx)
 		if err != nil {
-			ZapLog.Error("DeleteTransactionByHash error: ", zap.Error(err), zap.Uint64("height", data.Block.Head.Number.Uint64()), zap.String("txHash", tx.Hash.String()))
+			ZapLog.Error("DeleteTransactionByHash error: ", zap.Error(err), zap.Uint64("height", data.Block.Number.Uint64()), zap.String("txHash", tx.Hash.String()))
 			return err
 		}
 		fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(receipt.TotalGasUsed), tx.GasPrice)
@@ -94,11 +94,11 @@ func (b *TransactionTask) Start(data chan *TaskChanData, rollbackData chan *Task
 	for {
 		select {
 		case d := <-data:
-			if d.Block.Block.Head.Number.Uint64() >= b.startHeight {
+			if d.Block.Block.Number.Uint64() >= b.startHeight {
 				b.init()
 				err := b.analysisTransaction(d.Block, b.Tx)
 				if err != nil {
-					ZapLog.Error("TransactionTask analysisBlock error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("TransactionTask analysisBlock error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				b.startHeight++
@@ -107,11 +107,11 @@ func (b *TransactionTask) Start(data chan *TaskChanData, rollbackData chan *Task
 			result <- true
 		case rd := <-rollbackData:
 			b.startHeight--
-			if b.startHeight == rd.Block.Block.Head.Number.Uint64() {
+			if b.startHeight == rd.Block.Block.Number.Uint64() {
 				b.init()
 				err := b.rollback(rd.Block, b.Tx)
 				if err != nil {
-					ZapLog.Error("TransactionTask analysisBlock error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("TransactionTask analysisBlock error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				b.commit()

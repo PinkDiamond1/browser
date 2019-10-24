@@ -2,8 +2,10 @@ package types
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"github.com/browser/rlp"
+	"github.com/fractalplatform/fractal/common"
 	"io"
 	"strings"
 )
@@ -168,6 +170,43 @@ func (a *Author) decode(sa *StorageAuthor) error {
 		return nil
 	}
 	return errors.New("author decode failed")
+}
+
+type AuthorJSON struct {
+	authorType AuthorType
+	OwnerStr   string `json:"owner"`
+	Weight     uint64 `json:"weight"`
+}
+
+func (a *Author) MarshalJSON() ([]byte, error) {
+	switch aTy := a.Owner.(type) {
+	case Name:
+		return json.Marshal(&AuthorJSON{authorType: AccountNameType, OwnerStr: aTy.String(), Weight: a.Weight})
+	case PubKey:
+		return json.Marshal(&AuthorJSON{authorType: PubKeyType, OwnerStr: aTy.String(), Weight: a.Weight})
+	case Address:
+		return json.Marshal(&AuthorJSON{authorType: AddressType, OwnerStr: aTy.String(), Weight: a.Weight})
+	}
+	return nil, errors.New("Author marshal failed")
+}
+
+func (a *Author) UnmarshalJSON(data []byte) error {
+	aj := &AuthorJSON{}
+	if err := json.Unmarshal(data, aj); err != nil {
+		return err
+	}
+	switch aj.authorType {
+	case AccountNameType:
+		a.Owner = Name(aj.OwnerStr)
+		a.Weight = aj.Weight
+	case PubKeyType:
+		a.Owner = HexToPubKey(aj.OwnerStr)
+		a.Weight = aj.Weight
+	case AddressType:
+		a.Owner = common.HexToAddress(aj.OwnerStr)
+		a.Weight = aj.Weight
+	}
+	return nil
 }
 
 var (

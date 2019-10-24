@@ -89,11 +89,12 @@ func initChainConfig() {
 		ZapLog.Error("GetChainConfig error: ", zap.Error(err))
 		panic(err)
 	}
-	sTime, err := client.GetBlockTimeByNumber(1)
+	block, err := client.GetBlockByNumber(1)
 	if err != nil {
 		ZapLog.Error("GetBlockTimeByNumber error: ", zap.Error(err))
 		panic(err)
 	}
+	sTime := block.Time / 1000000000
 	config.Chain = &config.ChainConfig{
 		FeeAssetId:            uint64(0),
 		ChainName:             chainConfig.ChainName,

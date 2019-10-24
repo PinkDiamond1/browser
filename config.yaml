@@ -6,7 +6,7 @@ browser:
     port: 3306
     database: ft
   node:
-    rpcHost: http://192.168.1.148:3090
+    rpcHost: http://192.168.1.148:9090
   log:
     level: info #error info debug
     file:
@@ -15,7 +15,7 @@ browser:
       rotationTime: 1 #time.Duration 1:day 2:hour
       maxAge: 15 #day
     console: true
-    syncBlockShowNumber: 1000
+    syncBlockShowNumber: 1
   tasks:
     - block
     - txs

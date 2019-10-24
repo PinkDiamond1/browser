@@ -17,7 +17,7 @@ type MysqlInternal struct {
 	ActionIndex   int
 	InternalIndex int
 	Height        uint64
-	Created       uint
+	Created       uint64
 	AssetId       uint64
 	ActionType    uint64
 	From          string

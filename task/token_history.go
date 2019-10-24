@@ -52,7 +52,7 @@ func (t *TokeHistoryTask) analysisTokenHistory(data *types.BlockAndResult, dbTx 
 					ActionHash:  aT.ActionHash.String(),
 					TxType:      0,
 					ActionType:  uint64(aT.Type),
-					Height:      block.Head.Number.Uint64(),
+					Height:      block.Number.Uint64(),
 				}
 				err = db.InsertTokenHistory(mTH, dbTx)
 				if err != nil {
@@ -91,7 +91,7 @@ func (t *TokeHistoryTask) analysisTokenHistory(data *types.BlockAndResult, dbTx 
 							InternalIndex: k,
 							TxType:        1,
 							ActionType:    uint64(iAt.Action.Type),
-							Height:        block.Head.Number.Uint64(),
+							Height:        block.Number.Uint64(),
 						}
 						err = db.InsertTokenHistory(mTH, dbTx)
 						if err != nil {
@@ -107,7 +107,7 @@ func (t *TokeHistoryTask) analysisTokenHistory(data *types.BlockAndResult, dbTx 
 }
 
 func (t *TokeHistoryTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
-	return db.DeleteTokenHistoryByHeight(data.Block.Head.Number.Uint64(), dbTx)
+	return db.DeleteTokenHistoryByHeight(data.Block.Number.Uint64(), dbTx)
 }
 
 func (t *TokeHistoryTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanData, result chan bool, startHeight uint64) {
@@ -115,11 +115,11 @@ func (t *TokeHistoryTask) Start(data chan *TaskChanData, rollbackData chan *Task
 	for {
 		select {
 		case d := <-data:
-			if d.Block.Block.Head.Number.Uint64() >= t.startHeight {
+			if d.Block.Block.Number.Uint64() >= t.startHeight {
 				t.init()
 				err := t.analysisTokenHistory(d.Block, t.Tx)
 				if err != nil {
-					ZapLog.Error("ActionTask analysisAction error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("ActionTask analysisAction error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				t.startHeight++
@@ -128,11 +128,11 @@ func (t *TokeHistoryTask) Start(data chan *TaskChanData, rollbackData chan *Task
 			result <- true
 		case rd := <-rollbackData:
 			t.startHeight--
-			if t.startHeight == rd.Block.Block.Head.Number.Uint64() {
+			if t.startHeight == rd.Block.Block.Number.Uint64() {
 				t.init()
 				err := t.rollback(rd.Block, t.Tx)
 				if err != nil {
-					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("ActionTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				t.commit()

@@ -9,7 +9,6 @@ import (
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"github.com/browser/types"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"go.uber.org/zap"
 	"strings"
 )
@@ -18,7 +17,7 @@ type AccountTask struct {
 	*Base
 }
 
-func (a *AccountTask) ActionToAccount(action *types.RPCAction, dbTx *sql.Tx, block *types.Block, oldAccounts map[string]struct{}) error {
+func (a *AccountTask) ActionToAccount(action *types.RPCAction, dbTx *sql.Tx, block *types.RpcBlock, oldAccounts map[string]struct{}) error {
 	aType := action.Type
 	payload, err := parsePayload(action)
 	if err != nil {
@@ -69,7 +68,7 @@ func (a *AccountTask) ActionToAccount(action *types.RPCAction, dbTx *sql.Tx, blo
 			Threshold:             1,
 			UpdateAuthorThreshold: 1,
 			Permissions:           string(authorText),
-			Created:               block.Head.Time,
+			Created:               block.Time,
 			ContractCreated:       0,
 			Description:           arg.Description,
 		}
@@ -81,8 +80,8 @@ func (a *AccountTask) ActionToAccount(action *types.RPCAction, dbTx *sql.Tx, blo
 		mAcct.AuthorVersion = authorVersion.String()
 		mAcct.CodeHash = crypto.Keccak256Hash(nil).String()
 
-		if block.Head.Number.Uint64() == 0 {
-			mAcct.ContractCreated = block.Head.Time
+		if block.Number.Uint64() == 0 {
+			mAcct.ContractCreated = block.Time
 		}
 		err = db.InsertAccount(mAcct, dbTx)
 		if err != nil {
@@ -103,7 +102,7 @@ func (a *AccountTask) ActionToAccount(action *types.RPCAction, dbTx *sql.Tx, blo
 			}
 			mOldAccount := &db.MysqlAccountRollback{
 				Account: account,
-				Height:  block.Head.Number.Uint64() - 1,
+				Height:  block.Number.Uint64() - 1,
 			}
 			err = db.InsertAccountRollback(mOldAccount, dbTx)
 			if err != nil {
@@ -211,7 +210,7 @@ func (a *AccountTask) ActionToAccount(action *types.RPCAction, dbTx *sql.Tx, blo
 			}
 			mOldAccount := &db.MysqlAccountRollback{
 				Account: account,
-				Height:  block.Head.Number.Uint64() - 1,
+				Height:  block.Number.Uint64() - 1,
 			}
 			err = db.InsertAccountRollback(mOldAccount, dbTx)
 			if err != nil {
@@ -229,19 +228,14 @@ func (a *AccountTask) ActionToAccount(action *types.RPCAction, dbTx *sql.Tx, blo
 		if len(action.Payload) != 0 {
 			values := map[string]interface{}{
 				"contract_code":    hex.EncodeToString(action.Payload),
-				"contract_created": block.Head.Time,
+				"contract_created": block.Time,
 			}
 			code, err := client.GetCode(action.To.String())
 			if err != nil {
 				ZapLog.Error("GetCode failed", zap.String("name", action.To.String()), zap.Error(err))
 				return err
 			}
-			bitCode, err := hexutil.Decode(code)
-			if err != nil {
-				ZapLog.Error("Decode failed", zap.String("name", action.To.String()), zap.Error(err))
-				return err
-			}
-			values["code_hash"] = crypto.Keccak256Hash(bitCode).String()
+			values["code_hash"] = crypto.Keccak256Hash(code.Code).String()
 			err = db.UpdateAccount(action.To.String(), values, dbTx)
 			if err != nil {
 				ZapLog.Error("CreateContract failed", zap.Error(err))
@@ -397,11 +391,11 @@ func (a *AccountTask) Start(data chan *TaskChanData, rollbackData chan *TaskChan
 	for {
 		select {
 		case d := <-data:
-			if d.Block.Block.Head.Number.Uint64() >= a.startHeight {
+			if d.Block.Block.Number.Uint64() >= a.startHeight {
 				a.init()
 				err := a.analysisAccount(d.Block, a.Tx)
 				if err != nil {
-					ZapLog.Error("AccountTask analysisAccount error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("AccountTask analysisAccount error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				a.startHeight++
@@ -410,11 +404,11 @@ func (a *AccountTask) Start(data chan *TaskChanData, rollbackData chan *TaskChan
 			result <- true
 		case rd := <-rollbackData:
 			a.startHeight--
-			if a.startHeight == rd.Block.Block.Head.Number.Uint64() {
+			if a.startHeight == rd.Block.Block.Number.Uint64() {
 				a.init()
 				err := a.rollback(rd.Block, a.Tx)
 				if err != nil {
-					ZapLog.Error("AccountTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("AccountTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				a.commit()

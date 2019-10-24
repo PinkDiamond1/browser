@@ -22,8 +22,8 @@ type MysqlAccount struct {
 	Permissions           string
 	ContractCode          string
 	CodeHash              string
-	Created               uint
-	ContractCreated       uint
+	Created               uint64
+	ContractCreated       uint64
 	Suicide               bool
 	Destroy               bool
 	Description           string

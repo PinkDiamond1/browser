@@ -28,8 +28,8 @@ func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *
 					ActionHash:    a.ActionHash.String(),
 					ActionIndex:   j,
 					InternalIndex: k,
-					Height:        data.Block.Head.Number.Uint64(),
-					Created:       data.Block.Head.Time,
+					Height:        data.Block.Number.Uint64(),
+					Created:       data.Block.Time,
 					AssetId:       ia.Action.AssetID,
 					ActionType:    uint64(ia.Action.Type),
 					From:          ia.Action.From.String(),
@@ -77,7 +77,7 @@ func (i *InternalTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error 
 		for _, at := range tx.RPCActions {
 			err := db.DeleteInternalByActionHash(at.ActionHash, dbTx)
 			if err != nil {
-				ZapLog.Error("DeleteInternalByActionHash error:", zap.Error(err), zap.Uint64("height", data.Block.Head.Number.Uint64()))
+				ZapLog.Error("DeleteInternalByActionHash error:", zap.Error(err), zap.Uint64("height", data.Block.Number.Uint64()))
 				return err
 			}
 		}
@@ -91,11 +91,11 @@ func (i *InternalTask) Start(data chan *TaskChanData, rollbackData chan *TaskCha
 	for {
 		select {
 		case d := <-data:
-			if d.Block.Block.Head.Number.Uint64() >= i.startHeight {
+			if d.Block.Block.Number.Uint64() >= i.startHeight {
 				i.init()
 				err := i.analysisInternalAction(d.Block, i.Tx)
 				if err != nil {
-					ZapLog.Error("InternalTask analysisInternalAction error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("InternalTask analysisInternalAction error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				i.startHeight++
@@ -104,11 +104,11 @@ func (i *InternalTask) Start(data chan *TaskChanData, rollbackData chan *TaskCha
 			result <- true
 		case rd := <-rollbackData:
 			i.startHeight--
-			if rd.Block.Block.Head.Number.Uint64() >= i.startHeight {
+			if rd.Block.Block.Number.Uint64() >= i.startHeight {
 				i.init()
 				err := i.rollback(rd.Block, i.Tx)
 				if err != nil {
-					ZapLog.Error("InternalTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("InternalTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				i.commit()

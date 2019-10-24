@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math/big"
 )
 
@@ -32,7 +33,7 @@ type Account struct {
 	AccountID             uint64          `json:"accountID"`
 	Number                uint64          `json:"number"`
 	Nonce                 uint64          `json:"nonce"`
-	Code                  []byte          `json:"code"`
+	Code                  hexutil.Bytes   `json:"code"`
 	CodeHash              Hash            `json:"codeHash"`
 	CodeSize              uint64          `json:"codeSize"`
 	Threshold             uint64          `json:"threshold"`
@@ -43,4 +44,8 @@ type Account struct {
 	Suicide               bool            `json:"suicide"`
 	Destroy               bool            `json:"destroy"`
 	Description           string          `json:"description"`
+}
+
+type Code struct {
+	Code hexutil.Bytes `json:"code"`
 }

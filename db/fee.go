@@ -17,7 +17,7 @@ type MysqlFee struct {
 	ActionIndex int
 	FeeIndex    int
 	Height      uint64
-	Created     uint
+	Created     uint64
 	AssetId     uint64
 	From        string
 	To          string

@@ -48,5 +48,5 @@ type ChainConfig struct {
 	CandidateScheduleSize uint64
 	BlockFrequency        uint64
 	ChainId               uint64
-	StartTime             int64
+	StartTime             uint64
 }

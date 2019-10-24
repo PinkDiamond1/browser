@@ -156,14 +156,14 @@ func (d *Dispatch) sendBlockToTask() {
 		for {
 			block := <-d.blockDataChan
 
-			if block.Block.Head.Number.Uint64() > d.batchTo { //the inverse calculation block
+			if block.Block.Number.Uint64() > d.batchTo { //the inverse calculation block
 				if d.currentBlock == nil {
 					d.currentBlock = block
 				} else {
-					if d.currentBlock.Hash.String() != block.Block.Head.ParentHash.String() {
+					if d.currentBlock.Block.Hash.String() != block.Block.ParentHash.String() {
 						d.currentBlock = block
 						d.rollback()
-						ZapLog.Info("rollback success", zap.Uint64("height", block.Block.Head.Number.Uint64()-1))
+						ZapLog.Info("rollback success", zap.Uint64("height", block.Block.Number.Uint64()-1))
 						continue
 					}
 					d.currentBlock = block
@@ -179,8 +179,8 @@ func (d *Dispatch) sendBlockToTask() {
 				taskDataChan <- taskData
 			}
 			d.checkTaskResult()
-			if block.Block.Head.Number.Int64()%config.Log.SyncBlockShowNumber == 0 {
-				ZapLog.Info("commit success", zap.Uint64("height", block.Block.Head.Number.Uint64()))
+			if block.Block.Number.Int64()%config.Log.SyncBlockShowNumber == 0 {
+				ZapLog.Info("commit success", zap.Uint64("height", block.Block.Number.Uint64()))
 			}
 		}
 	}()
@@ -215,7 +215,7 @@ func (d *Dispatch) rollback() {
 			break
 		}
 	}
-	endHeight := d.currentBlock.Block.Head.Number.Uint64() - 1
+	endHeight := d.currentBlock.Block.Number.Uint64() - 1
 
 	for ; ; endHeight-- {
 		dbBlock := db.Mysql.GetBlockOriginalByHeight(endHeight)
@@ -223,7 +223,7 @@ func (d *Dispatch) rollback() {
 		if err != nil {
 			ZapLog.Panic("rpc get block error", zap.Error(err))
 		}
-		if dbBlock.BlockHash != chainBlock.Hash.String() {
+		if dbBlock.BlockHash != chainBlock.Block.Hash.String() {
 			rollbackData := &task.TaskChanData{
 				Block: BlobToBlock(dbBlock),
 				Tx:    nil,
@@ -244,13 +244,13 @@ func (d *Dispatch) rollback() {
 }
 
 func (d *Dispatch) cacheBlock(blockData *task.TaskChanData) {
-	height := blockData.Block.Block.Head.Number.Uint64()
+	height := blockData.Block.Block.Number.Uint64()
 	if height > d.batchTo {
 		irreversible, err := client.GetDposIrreversible()
 		if err != nil {
 			ZapLog.Panic("cache block data error", zap.Error(err))
 		}
-		if blockData.Block.Block.Head.Number.Uint64() > irreversible.BftIrreversible {
+		if blockData.Block.Block.Number.Uint64() > irreversible.BftIrreversible {
 			db.AddReversibleBlockCache(BlockToBlob(blockData.Block))
 		}
 	}
@@ -272,9 +272,9 @@ func BlockToBlob(block *types.BlockAndResult) *db.BlockOriginal {
 	}
 	result := &db.BlockOriginal{
 		BlockData:  data,
-		Height:     block.Block.Head.Number.Uint64(),
-		BlockHash:  block.Hash.String(),
-		ParentHash: block.Block.Head.ParentHash.String(),
+		Height:     block.Block.Number.Uint64(),
+		BlockHash:  block.Block.Hash.String(),
+		ParentHash: block.Block.ParentHash.String(),
 	}
 	return result
 }

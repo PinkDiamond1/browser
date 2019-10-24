@@ -34,7 +34,7 @@ func (f *TokenFeeHistoryTask) analysis(data *types.BlockAndResult, dbTx *sql.Tx)
 						ActionIndex:    j,
 						ActionHash:     at.ActionHash.String(),
 						FeeActionIndex: k,
-						Height:         data.Block.Head.Number.Uint64(),
+						Height:         data.Block.Number.Uint64(),
 					}
 					err = db.InsertTokenFeeHistory(mTFH, dbTx)
 					if err != nil {
@@ -55,9 +55,9 @@ func (a *TokenFeeHistoryTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx)
 			for _, aR := range aRs.GasAllot {
 				if aR.Reason == 0 {
 					tokenInfo := db.QueryTokenByName(dbTx, aR.Account.String())
-					err := db.DeleteTokenFeeHistoryByHeight(tokenInfo.AssetId, data.Block.Head.Number.Uint64(), dbTx)
+					err := db.DeleteTokenFeeHistoryByHeight(tokenInfo.AssetId, data.Block.Number.Uint64(), dbTx)
 					if err != nil {
-						ZapLog.Error("DeleteTokenFeeHistoryByHeight", zap.Error(err), zap.Uint64("height", data.Block.Head.Number.Uint64()))
+						ZapLog.Error("DeleteTokenFeeHistoryByHeight", zap.Error(err), zap.Uint64("height", data.Block.Number.Uint64()))
 						return err
 					}
 				}
@@ -72,11 +72,11 @@ func (a *TokenFeeHistoryTask) Start(data chan *TaskChanData, rollbackData chan *
 	for {
 		select {
 		case d := <-data:
-			if d.Block.Block.Head.Number.Uint64() >= a.startHeight {
+			if d.Block.Block.Number.Uint64() >= a.startHeight {
 				a.init()
 				err := a.analysis(d.Block, a.Tx)
 				if err != nil {
-					ZapLog.Error("TokenFeeHistoryTask analysis error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("TokenFeeHistoryTask analysis error: ", zap.Error(err), zap.Uint64("height", d.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				a.startHeight++
@@ -85,11 +85,11 @@ func (a *TokenFeeHistoryTask) Start(data chan *TaskChanData, rollbackData chan *
 			result <- true
 		case rd := <-rollbackData:
 			a.startHeight--
-			if rd.Block.Block.Head.Number.Uint64() == a.startHeight {
+			if rd.Block.Block.Number.Uint64() == a.startHeight {
 				a.init()
 				err := a.rollback(rd.Block, a.Tx)
 				if err != nil {
-					ZapLog.Error("TokenFeeHistoryTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Head.Number.Uint64()))
+					ZapLog.Error("TokenFeeHistoryTask rollback error: ", zap.Error(err), zap.Uint64("height", rd.Block.Block.Number.Uint64()))
 					panic(err)
 				}
 				a.commit()

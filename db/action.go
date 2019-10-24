@@ -17,7 +17,7 @@ type MysqlAction struct {
 	ActionIndex     int
 	Nonce           uint64
 	Height          uint64
-	Created         uint
+	Created         uint64
 	GasAssetId      uint64
 	TransferAssetId uint64
 	ActionType      uint64
@@ -36,11 +36,12 @@ type MysqlAction struct {
 
 func InsertAction(data *MysqlAction, dbTx *sql.Tx) error {
 	tName := GetTableNameHash("actions_hash", data.TxHash)
-	stmt, err := dbTx.Prepare(fmt.Sprintf("insert into %s (tx_hash, action_hash, action_index,nonce,height,created,gas_asset_id,transfer_asset_id,"+
-		"action_type,from_account,to_account,amount,gas_limit,gas_used,state,error_msg,remark,payload,payload_size,internal_action_count) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tName))
+	insertSql := fmt.Sprintf("insert into %s (tx_hash, action_hash, action_index,nonce,height,created,gas_asset_id,transfer_asset_id,"+
+		"action_type,from_account,to_account,amount,gas_limit,gas_used,state,error_msg,remark,payload,payload_size,internal_action_count) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tName)
+	stmt, err := dbTx.Prepare(insertSql)
 	defer stmt.Close()
 	if err != nil {
-		ZapLog.Panic("InsertAction error", zap.Error(err), zap.String("txHash", data.TxHash))
+		ZapLog.Panic("InsertAction error", zap.Error(err), zap.String("txHash", data.TxHash), zap.String("sql", insertSql))
 	}
 	state := strconv.FormatUint(data.State, 10)
 	_, err = stmt.Exec(data.TxHash, data.ActionHash, data.ActionIndex, data.Nonce, data.Height, data.Created, data.GasAssetId, data.TransferAssetId,

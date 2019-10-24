@@ -119,7 +119,7 @@ func scanning(fromHeight, toHeight int64, blockDataChan chan *types.BlockAndResu
 			case <-ctx.Done():
 				return
 			case block := <-chSave:
-				currentHeight := block.Block.Head.Number.Int64()
+				currentHeight := block.Block.Number.Int64()
 				ZapLog.Debug("get block data finished", zap.Int64("height", currentHeight))
 				if currentHeight%config.Log.SyncBlockShowNumber == 0 {
 					ZapLog.Info("get block data finished", zap.Int64("height", currentHeight))

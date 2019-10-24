@@ -1,26 +1,25 @@
 package types
 
 type DetailTx struct {
-	TxHash          Hash
-	InternalActions []*InternalAction
+	TxHash          Hash              `json:"txhash"`
+	InternalActions []*InternalAction `json:"actions"`
 }
 
 type InternalAction struct {
-	InternalLogs []*InternalLog
+	InternalLogs []*InternalLog `json:"internalActions"`
 }
 
 type InternalLog struct {
-	Action     *RPCAction
-	ActionType string
-	GasUsed    uint64
-	GasLimit   uint64
-	Depth      uint64
-	Error      string
+	Action     *RPCAction `json:"action"`
+	ActionType string     `json:"actionType"`
+	GasUsed    uint64     `json:"gasUsed"`
+	GasLimit   uint64     `json:"gasLimit"`
+	Depth      uint64     `json:"depth"`
+	Error      string     `json:"error"`
 }
 
 type BlockAndResult struct {
-	Hash      Hash
-	Block     *Block
-	Receipts  []*Receipt
-	DetailTxs []*DetailTx
+	Block     *RpcBlock   `json:"block"`
+	Receipts  []*Receipt  `json:"receipts"`
+	DetailTxs []*DetailTx `json:"detailTxs"`
 }

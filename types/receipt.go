@@ -40,7 +40,7 @@ func (g *GasDistribution) NewRpcAction() *RPCAction {
 	action := RPCAction{
 		To:     g.Account,
 		Amount: big.NewInt(int64(g.Gas)),
-		//From:   Name(g.Fromaccount),
+		//From:   Name(g.Account),
 	}
 	return &action
 }

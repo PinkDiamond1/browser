@@ -65,7 +65,7 @@ type RpcBlock struct {
 	Root                 Hash              `json:"stateRoot"`
 	CoinBase             Name              `json:"miner"`
 	Difficulty           *big.Int          `json:"difficulty"`
-	Extra                []byte            `json:"extraData"`
+	Extra                hexutil.Bytes     `json:"extraData"`
 	Size                 uint64            `json:"size"`
 	GasLimit             uint64            `json:"gasLimit"`
 	GasUsed              uint64            `json:"gasUsed"`

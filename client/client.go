@@ -77,6 +77,9 @@ func GetCandidatesCount() (uint64, error) {
 func GetBlockAndResult(number int64) (*types.BlockAndResult, error) {
 	data := &types.BlockAndResult{}
 	err := GetData(methodBlockAndResultByNumber, &data, number)
+	if err == ErrNull {
+		return nil, err
+	}
 	if err != nil {
 		ZapLog.Error("GetBlockAndResult error", zap.Error(err), zap.Int64("height", number))
 		return data, err
@@ -134,7 +137,6 @@ func GetData(method string, outData interface{}, params ...interface{}) error {
 	}
 	result := jsonParsed.Path("result")
 	if result.Data() == nil {
-		ZapLog.Error("GetData null", zap.Error(err), zap.String("method", method))
 		return ErrNull
 	}
 	err = json.Unmarshal([]byte(result.String()), outData)

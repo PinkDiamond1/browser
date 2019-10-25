@@ -82,6 +82,10 @@ func (d *Dispatch) Start() {
 		}
 		if !isRollback {
 			block, err := client.GetBlockAndResult(int64(startHeight))
+			if err == client.ErrNull {
+				time.Sleep(syncDuration)
+				continue
+			}
 			if err != nil {
 				ZapLog.Error("sync getBlockByNumber", zap.Error(err))
 				time.Sleep(syncDuration)

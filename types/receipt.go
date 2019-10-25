@@ -28,9 +28,9 @@ type ActionResult struct {
 
 // Receipt represents the results of a transaction.
 type Receipt struct {
-	PostState         []byte          `json:"PostState"`
+	//PostState         []byte          `json:"PostState"`
 	ActionResults     []*ActionResult `json:"ActionResults"`
-	CumulativeGasUsed uint64          `json:"CumulativeGasUsed"`
+	//CumulativeGasUsed uint64          `json:"CumulativeGasUsed"`
 	TxHash            Hash            `json:"TxHash"`
 	TotalGasUsed      uint64          `json:"TotalGasUsed"`
 	//Logs              []*Log

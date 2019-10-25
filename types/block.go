@@ -59,20 +59,20 @@ func (b *Bloom) UnmarshalText(input []byte) error {
 type RpcBlock struct {
 	Number               *big.Int          `json:"number"`
 	Hash                 Hash              `json:"hash"`
-	ProposedIrreversible uint64            `json:"proposedIrreversible"`
+	//ProposedIrreversible uint64            `json:"proposedIrreversible"`
 	ParentHash           Hash              `json:"parentHash"`
-	Bloom                Bloom             `json:"logsBloom"`
-	Root                 Hash              `json:"stateRoot"`
+	//Bloom                Bloom             `json:"logsBloom"`
+	//Root                 Hash              `json:"stateRoot"`
 	CoinBase             Name              `json:"miner"`
 	Difficulty           *big.Int          `json:"difficulty"`
 	Extra                hexutil.Bytes     `json:"extraData"`
-	Size                 uint64            `json:"size"`
+	//Size                 uint64            `json:"size"`
 	GasLimit             uint64            `json:"gasLimit"`
 	GasUsed              uint64            `json:"gasUsed"`
 	Time                 uint64            `json:"timestamp"`
-	TxsRoot              Hash              `json:"transactionsRoot"`
-	ReceiptsRoot         Hash              `json:"receiptsRoot"`
-	ForkID               ForkID            `json:"forkID"`
+	//TxsRoot              Hash              `json:"transactionsRoot"`
+	//ReceiptsRoot         Hash              `json:"receiptsRoot"`
+	//ForkID               ForkID            `json:"forkID"`
 	TotalDifficulty      *big.Int          `json:"totalDifficulty"`
 	Txs                  []*RPCTransaction `json:"transactions"`
 }

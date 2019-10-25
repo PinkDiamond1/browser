@@ -121,7 +121,7 @@ func GetDposIrreversible() (*types.DposIrreversible, error) {
 
 func GetCode(name string) (hexutil.Bytes, error) {
 	data := hexutil.Bytes{}
-	err := GetData(methodGetCode, &data)
+	err := GetData(methodGetCode, &data, name)
 	if err != nil {
 		ZapLog.Error("GetCode error", zap.Error(err), zap.String("name", name))
 		return data, err

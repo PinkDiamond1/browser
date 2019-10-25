@@ -1,7 +1,6 @@
 package client
 
 import (
-	"github.com/browser/types"
 	"testing"
 )
 
@@ -20,12 +19,4 @@ func TestSendRawTransaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(hash)
-}
-
-func TestGetCurrentBlockInfo(t *testing.T) {
-	data := &types.RpcBlock{}
-	err := GetData(methodCurrentBlock, data, false)
-	if err != nil {
-		t.Failed()
-	}
 }

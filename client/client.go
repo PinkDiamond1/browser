@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	. "github.com/browser/log"
 	"github.com/browser/types"
 	"go.uber.org/zap"
@@ -24,17 +25,18 @@ const (
 
 func GetCurrentBlockInfo() (*types.RpcBlock, error) {
 	data := &types.RpcBlock{}
-	err := GetData(methodCurrentBlock, data, false)
+	err := GetData(methodCurrentBlock, data, true)
 	if err != nil {
 		ZapLog.Error("methodCurrentBlock error", zap.Error(err))
 		return nil, err
 	}
+	data.Time = data.Time / 1000000000
 	return data, nil
 }
 
 func GetBlockByNumber(height uint64) (*types.RpcBlock, error) {
 	data := &types.RpcBlock{}
-	err := GetData(methodBlockByNumber, data, height, false)
+	err := GetData(methodBlockByNumber, data, height, true)
 	if err != nil {
 		ZapLog.Error("GetBlockByNumber error", zap.Error(err))
 		return nil, err
@@ -135,6 +137,9 @@ func GetData(method string, outData interface{}, params ...interface{}) error {
 	if result.Data() == nil {
 		ZapLog.Error("GetData null", zap.Error(err), zap.String("method", method))
 		return err
+	}
+	if method == methodBlockByNumber {
+		fmt.Println("---", params, result.String())
 	}
 	err = json.Unmarshal([]byte(result.String()), outData)
 	if err != nil {

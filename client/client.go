@@ -3,7 +3,6 @@ package client
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	. "github.com/browser/log"
 	"github.com/browser/types"
 	"go.uber.org/zap"
@@ -136,10 +135,7 @@ func GetData(method string, outData interface{}, params ...interface{}) error {
 	result := jsonParsed.Path("result")
 	if result.Data() == nil {
 		ZapLog.Error("GetData null", zap.Error(err), zap.String("method", method))
-		return err
-	}
-	if method == methodBlockByNumber {
-		fmt.Println("---", params, result.String())
+		return ErrNull
 	}
 	err = json.Unmarshal([]byte(result.String()), outData)
 	if err != nil {

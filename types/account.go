@@ -46,6 +46,3 @@ type Account struct {
 	Description           string          `json:"description"`
 }
 
-type Code struct {
-	Code hexutil.Bytes `json:"code"`
-}

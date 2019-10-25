@@ -5,6 +5,7 @@ import (
 	"errors"
 	. "github.com/browser/log"
 	"github.com/browser/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"go.uber.org/zap"
 )
 
@@ -118,8 +119,8 @@ func GetDposIrreversible() (*types.DposIrreversible, error) {
 	return data, nil
 }
 
-func GetCode(name string) (*types.Code, error) {
-	data := &types.Code{}
+func GetCode(name string) (hexutil.Bytes, error) {
+	data := hexutil.Bytes{}
 	err := GetData(methodGetCode, &data)
 	if err != nil {
 		ZapLog.Error("GetCode error", zap.Error(err), zap.String("name", name))

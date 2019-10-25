@@ -235,7 +235,7 @@ func (a *AccountTask) ActionToAccount(action *types.RPCAction, dbTx *sql.Tx, blo
 				ZapLog.Error("GetCode failed", zap.String("name", action.To.String()), zap.Error(err))
 				return err
 			}
-			values["code_hash"] = crypto.Keccak256Hash(code.Code).String()
+			values["code_hash"] = crypto.Keccak256Hash(code).String()
 			err = db.UpdateAccount(action.To.String(), values, dbTx)
 			if err != nil {
 				ZapLog.Error("CreateContract failed", zap.Error(err))

@@ -60,9 +60,8 @@ CREATE TABLE IF NOT EXISTS actions_hash (
   payload BLOB,
   payload_size INT(11) NOT NULL,
   internal_action_count INT(11) NOT NULL,
---   fee_index BIGINT NOT NULL,
---   fee_count INT(11) NOT NULL,
   KEY `action_hash_index` (`action_hash`) USING BTREE,
+  KEY `tx_hash_action_index` (`tx_hash`,`action_index`),
   PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -87,6 +86,7 @@ CREATE TABLE IF NOT EXISTS internal_actions_hash (
   error_msg longtext,
   payload longtext,
   KEY `action_hash_index` (`action_hash`) USING BTREE,
+  KEY `action_hash_internal_index` (`action_hash`,`internal_index`),
   PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS fee_actions_hash (
   amount VARCHAR(1000) NOT NULL,
   reason ENUM('0', '1', '2') NOT NULL,
   KEY `action_hash_index` (`action_hash`) USING BTREE,
+  KEY `action_hash_internal_index` (`action_hash`,`fee_index`),
   PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -185,7 +186,7 @@ CREATE TABLE IF NOT EXISTS token_history (
   action_type INT(11) NOT NULL,
   height INT(11) NOT NULL,
   KEY `token_id` (`token_id`),
-	PRIMARY KEY (id)
+  PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

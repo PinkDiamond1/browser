@@ -174,6 +174,9 @@ func saveToken(tx *sql.Tx, action *types.RPCAction, blockTime uint64, height uin
 		dbToken.CumulativeDestruction = big.NewInt(0)
 		dbToken.UpdateTime = blockTime
 
+		if dbToken.Founder == "" {
+			dbToken.Founder = dbToken.AssetOwner
+		}
 		db.AddToken(tx, dbToken)
 	} else if action.Type == types.IncreaseAsset {
 		obj := iActionAsset.(types.IncAssetObject)

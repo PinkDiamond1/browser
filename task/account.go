@@ -81,7 +81,9 @@ func (a *AccountTask) ActionToAccount(action *types.RPCAction, dbTx *sql.Tx, blo
 		mAcct.CodeHash = crypto.Keccak256Hash(nil).String()
 
 		if block.Number.Uint64() == 0 {
-			mAcct.ContractCreated = block.Time
+			if mAcct.Name != "fractal" && mAcct.Name != "fractal.founder" {
+				mAcct.ContractCreated = block.Time
+			}
 		}
 		err = db.InsertAccount(mAcct, dbTx)
 		if err != nil {

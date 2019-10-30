@@ -21,6 +21,6 @@ type DposKickedCandidate struct {
 
 type DposIrreversible struct {
 	Reversible           uint64 `json:"reversible"`
-	ProposedIrreversible uint64 `json:"proposed_irreversible"`
-	BftIrreversible      uint64 `json:"bft_irreversible"`
+	ProposedIrreversible uint64 `json:"proposedIrreversible"`
+	BftIrreversible      uint64 `json:"bftIrreversible"`
 }

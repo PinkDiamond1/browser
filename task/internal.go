@@ -1,6 +1,7 @@
 package task
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"strings"
@@ -23,6 +24,20 @@ func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *
 			a := tx.RPCActions[j]
 			ar := receipt.ActionResults[j]
 			for k, ia := range ias.InternalLogs {
+				if ia.Action.Type == types.CallContract {
+					if bytes.Equal(ia.Action.Payload, []byte{}) {
+						ia.Action.Type = types.Transfer
+					} else {
+						acct, err := db.GetAccountByName(ia.Action.To.String(), dbTx)
+						if err != nil {
+							ZapLog.Error("GetAccountByName error", zap.String("name", ia.Action.To.String()), zap.Error(err))
+							return err
+						}
+						if acct.ContractCreated <= 0 {
+							ia.Action.Type = types.Transfer
+						}
+					}
+				}
 				mInternal := &db.MysqlInternal{
 					TxHash:        tx.Hash.String(),
 					ActionHash:    a.ActionHash.String(),

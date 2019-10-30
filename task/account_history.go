@@ -1,7 +1,9 @@
 package task
 
 import (
+	"bytes"
 	"database/sql"
+	"github.com/browser/config"
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"github.com/browser/types"
@@ -40,6 +42,12 @@ func (a *AccountHistoryTask) analysisAccountHistory(data *types.BlockAndResult, 
 					return err
 				}
 			}
+			toName := action.To.String()
+			if toName == config.Chain.ChainAccountName || toName == config.Chain.ChainDposName || toName == config.Chain.ChainFeeName || toName == config.Chain.ChainAssetName {
+				if action.Type != types.Transfer && action.Type != types.CreateContract {
+					aType = 4
+				}
+			}
 			if action.To != action.From {
 				if action.Type == types.CallContract {
 					aType = 4
@@ -65,6 +73,20 @@ func (a *AccountHistoryTask) analysisAccountHistory(data *types.BlockAndResult, 
 		tx := data.Block.Txs[i]
 		for j, iActions := range iTxActions.InternalActions {
 			for k, iAction := range iActions.InternalLogs {
+				if iAction.Action.Type == types.CallContract {
+					if bytes.Equal(iAction.Action.Payload, []byte{}) {
+						iAction.Action.Type = types.Transfer
+					} else {
+						acct, err := db.GetAccountByName(iAction.Action.To.String(), dbTx)
+						if err != nil {
+							ZapLog.Error("GetAccountByName error", zap.String("name", iAction.Action.To.String()), zap.Error(err))
+							return err
+						}
+						if acct.ContractCreated <= 0 {
+							iAction.Action.Type = types.Transfer
+						}
+					}
+				}
 				var aType int
 				switch iAction.Action.Type {
 				case types.Transfer:
@@ -89,6 +111,12 @@ func (a *AccountHistoryTask) analysisAccountHistory(data *types.BlockAndResult, 
 					if err != nil {
 						ZapLog.Error("InsertAccountHistory error: ", zap.Error(err), zap.String("account", iAction.Action.From.String()))
 						return err
+					}
+				}
+				iToName := iAction.Action.To.String()
+				if iToName == config.Chain.ChainAccountName || iToName == config.Chain.ChainDposName || iToName == config.Chain.ChainFeeName || iToName == config.Chain.ChainAssetName {
+					if iAction.Action.Type != types.Transfer && iAction.Action.Type != types.CreateContract {
+						aType = 5
 					}
 				}
 				if iAction.Action.To != iAction.Action.From {

@@ -27,9 +27,6 @@ const (
 	methodAccountByID            = "account_getAccountByID"
 	methodDposCadidatesSize      = "dpos_candidatesSize"
 	methodDposIrreversible       = "dpos_irreversible"
-	methodBrowserAllEpoch        = "dpos_browserAllEpoch"
-	methodBrowserVote            = "dpos_browserVote"
-	methodBrowserEpochRecord     = "dpos_browserEpochRecord"
 )
 
 func GetAccountByID(id uint64) (string, error) {
@@ -44,36 +41,6 @@ func GetAccountByID(id uint64) (string, error) {
 	}
 	name := jsonParsed.Path("result.accountName").Data().(string)
 	return name, nil
-}
-
-func GetBrowserEpochRecord(epoch uint64) (*types.ArrayCandidateInfoForBrowser, error) {
-	data := &types.ArrayCandidateInfoForBrowser{}
-	err := GetData(methodBrowserEpochRecord, data, epoch)
-	if err != nil {
-		ZapLog.Error("GetBrowserVote error", zap.Error(err))
-		return nil, err
-	}
-	return data, nil
-}
-
-func GetBrowserVote(epoch uint64) (*types.ArrayCandidateInfoForBrowser, error) {
-	data := &types.ArrayCandidateInfoForBrowser{}
-	err := GetData(methodBrowserVote, data, epoch)
-	if err != nil {
-		ZapLog.Error("GetBrowserVote error", zap.Error(err))
-		return nil, err
-	}
-	return data, nil
-}
-
-func GetBrowserAllEpoch() (*types.Epochs, error) {
-	data := &types.Epochs{}
-	err := GetData(methodBrowserAllEpoch, data)
-	if err != nil {
-		ZapLog.Error("GetBrowserAllEpoch error", zap.Error(err))
-		return nil, err
-	}
-	return data, nil
 }
 
 func GetFeeResultByTime(time uint64, startFeeID uint64, count uint64) (*types.ObjectFeeResult, error) {

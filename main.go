@@ -9,15 +9,12 @@ import (
 	"github.com/browser/db"
 	"github.com/browser/dispatch"
 	_ "github.com/browser/init"
-	"github.com/browser/mem"
 )
 
 func main() {
 	SignalHandler()
-	go mem.DposStart()
 	// go statis.Start()
 	dispatch.NewDispatch().Start()
-
 }
 
 func SignalHandler() {

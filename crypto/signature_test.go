@@ -22,9 +22,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/browser/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/fractalplatform/fractal/common"
 )
 
 var (

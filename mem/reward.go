@@ -7,9 +7,11 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"strings"
 
 	// . "github.com/browser/log"
 
+	"github.com/abi"
 	"github.com/browser/config"
 	"github.com/browser/types"
 )
@@ -34,7 +36,8 @@ type RPCResponse struct {
 }
 
 //FractalRequest .
-type FractalRequest struct { //调用ft_call
+type FractalRequest struct {
+	//调用ft_call
 	ChainID    int      `json:"chainID"`
 	ActionType int      `json:"actionType"`
 	GasAssetID int      `json:"gasAssetId"`
@@ -109,29 +112,29 @@ func transaction(request *FractalRequest) (string, error) {
 	return resp.Result.(string), nil
 }
 
-// func input(abifile string, method string, params ...interface{}) (string, error) {
-// 	var abicode string
+func input(abifile string, method string, params ...interface{}) (string, error) {
+	var abicode string
 
-// 	hexcode, err := ioutil.ReadFile(abifile)
-// 	if err != nil {
-// 		// ZapLog.Error("Could not load code from file: %v\n", zap.Error(err))
-// 		return "", err
-// 	}
-// 	abicode = string(bytes.TrimRight(hexcode, "\n"))
+	hexcode, err := ioutil.ReadFile(abifile)
+	if err != nil {
+		// ZapLog.Error("Could not load code from file: %v\n", zap.Error(err))
+		return "", err
+	}
+	abicode = string(bytes.TrimRight(hexcode, "\n"))
 
-// 	parsed, err := abi.JSON(strings.NewReader(abicode))
-// 	if err != nil {
-// 		// ZapLog.Error("abi.json error ", zap.Error(err))
-// 		return "", err
-// 	}
+	parsed, err := abi.JSON(strings.NewReader(abicode))
+	if err != nil {
+		// ZapLog.Error("abi.json error ", zap.Error(err))
+		return "", err
+	}
 
-// 	input, err := parsed.Pack(method, params...)
-// 	if err != nil {
-// 		// ZapLog.Error("parsed.pack error ", zap.Error(err))
-// 		return "", err
-// 	}
-// 	return types.Bytes2Hex(input), nil
-// }
+	input, err := parsed.Pack(method, params...)
+	if err != nil {
+		// ZapLog.Error("parsed.pack error ", zap.Error(err))
+		return "", err
+	}
+	return types.Bytes2Hex(input), nil
+}
 
 // //RewardInfo .
 // type RewardInfo struct {

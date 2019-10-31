@@ -26,8 +26,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/browser/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/fractalplatform/fractal/common"
 )
 
 var testAddrHex = "970e8128ab834e8eac17ab8e3812f010678cf791"

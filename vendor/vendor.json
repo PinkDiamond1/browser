@@ -9,6 +9,12 @@
 			"revisionTime": "2019-08-15T21:26:36Z"
 		},
 		{
+			"checksumSHA1": "b36QQnzfN1tPnCU6+iwrOQPx4MQ=",
+			"path": "github.com/abi",
+			"revision": "",
+			"tree": true
+		},
+		{
 			"checksumSHA1": "kto0asmOE+Nuhj7T8cvrvIwq2ak=",
 			"path": "github.com/aristanetworks/goarista/monotime",
 			"revision": "b54698eaaca61d3fbb2d95fde920f2bfa08f0a99",
@@ -314,5 +320,5 @@
 			"revisionTime": "2018-11-15T11:05:04Z"
 		}
 	],
-	"rootPath": "github.com/browser_service"
+	"rootPath": "github.com/browser"
 }

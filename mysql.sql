@@ -276,3 +276,52 @@ CREATE TABLE IF NOT EXISTS token_rollback (
   KEY `height_asset_name` (`height`,`asset_name`),
   PRIMARY KEY (id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS statis_token (
+  token_name    VARCHAR(100) NOT NULL,
+  user_num      INT(11) NOT NULL,
+  user_rank     INT(11) NOT NULL,
+  call_num      INT(11) NOT NULL,
+  call_rank     INT(11) NOT NULL,
+  holder_num    INT(11) NOT NULL,
+  holder_rank   INT(11) NOT NULL,
+  income_rank   INT(11) NOT NULL,
+  feeTotal      VARCHAR(100) NOT NULL,
+  PRIMARY KEY (token_name)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- statis table 
+CREATE TABLE IF NOT EXISTS statis_contract (
+  contract_name VARCHAR(100) NOT NULL,
+  user_num      INT(11) NOT NULL,
+  user_rank     INT(11) NOT NULL,
+  call_num      INT(11) NOT NULL,
+  call_rank     INT(11) NOT NULL,
+  income_rank   INT(11) NOT NULL,
+  feeTotal      VARCHAR(100) NOT NULL,
+  PRIMARY KEY (contract_name)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS statis_token_info (
+  id       INT(11) NOT NULL AUTO_INCREMENT,
+  name     VARCHAR(100) NOT NULL UNIQUE,
+  decimals INT(11) NOT NULL,
+  assetid  BIGINT NOT NULL UNIQUE,
+  shortname VARCHAR(100) NOT NULL UNIQUE,
+  PRIMARY  KEY (id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS statis_fee_total (
+  name              VARCHAR(100) NOT NULL,
+  nametype          ENUM('0', '1') NOT NULL COMMENT '0 token 1 contract',
+  rank              INT(11) NOT NULL,
+  fee               VARCHAR(100) NOT NULL,
+  KEY `index_rank` (`rank`),
+  PRIMARY KEY (name)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS statis_block_info (
+  id INT(11) NOT NULL,
+  height     BIGINT NOT NULL,
+  PRIMARY    KEY (id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;

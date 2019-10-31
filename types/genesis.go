@@ -2,10 +2,10 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/log"
+	. "github.com/browser/log"
+	"go.uber.org/zap"
 )
 
 // ChainConfig is the core config which determines the blockchain settings.
@@ -106,8 +106,7 @@ type GenesisAsset struct {
 func (g *Genesis) UnmarshalJSON(input []byte) {
 	var dec Genesis
 	if err := json.Unmarshal(input, &dec); err != nil {
-		log.Error("Unmarshal failed", "err", err)
-		panic(fmt.Sprintf("genesis Unmarshal"))
+		ZapLog.Panic("Genesis Unmarshal failed", zap.Error(err))
 	}
 	if dec.Config != nil {
 		g.Config = dec.Config

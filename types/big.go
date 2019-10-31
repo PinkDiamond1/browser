@@ -10,4 +10,7 @@ var (
 	Big32  = big.NewInt(32)
 	Big256 = big.NewInt(256)
 	Big257 = big.NewInt(257)
+	Big20  = big.NewInt(20)
+	Big80  = big.NewInt(80)
+	Big100 = big.NewInt(100)
 )

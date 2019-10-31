@@ -185,6 +185,7 @@ func (d *Dispatch) sendBlockToTask() {
 			d.checkTaskResult()
 			if block.Block.Number.Int64()%config.Log.SyncBlockShowNumber == 0 {
 				ZapLog.Info("commit success", zap.Uint64("height", block.Block.Number.Uint64()))
+				time.Sleep(time.Second * 100)
 			}
 		}
 	}()

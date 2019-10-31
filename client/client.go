@@ -3,9 +3,13 @@ package client
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+
 	. "github.com/browser/log"
 	"github.com/browser/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ftbrowser/common"
+	"github.com/ftserverstatistical/services/param"
 	"go.uber.org/zap"
 )
 
@@ -14,14 +18,73 @@ const (
 	methodBlockByNumber          = "ft_getBlockByNumber"
 	methodChainConfig            = "ft_getChainConfig"
 	methodBlockAndResultByNumber = "ft_getBlockAndResultByNumber"
+	methodFeeResult              = "fee_getObjectFeeResult"
 	methodSendRawTransaction     = "ft_sendRawTransaction"
 	methodAssetInfoByName        = "account_getAssetInfoByName"
 	methodAssetInfoByID          = "account_getAssetInfoByID"
 	methodGetAccountByName       = "account_getAccountByName"
 	methodGetCode                = "account_getCode"
+	methodAccountByID            = "account_getAccountByID"
 	methodDposCadidatesSize      = "dpos_candidatesSize"
 	methodDposIrreversible       = "dpos_irreversible"
+	methodBrowserAllEpoch        = "dpos_browserAllEpoch"
+	methodBrowserVote            = "dpos_browserVote"
+	methodBrowserEpochRecord     = "dpos_browserEpochRecord"
 )
+
+func GetAccountByID(id uint64) (string, error) {
+	request := common.NewRPCRequest("2.0", methodAccountByID, id)
+	jsonParsed, err := common.SendRPCRequst(param.Rpchost, request)
+	if err != nil {
+		ZapLog.Error(fmt.Sprintf("GetAccountByID SendRPCRequst error --- %s", err))
+		return "", err
+	}
+	if result := jsonParsed.Path("result").Data(); result == nil {
+		return "", fmt.Errorf("GetAccountByID Name not found ID:%d", id)
+	}
+	name := jsonParsed.Path("result.accountName").Data().(string)
+	return name, nil
+}
+
+func GetBrowserEpochRecord(epoch uint64) (*types.ArrayCandidateInfoForBrowser, error) {
+	data := &types.ArrayCandidateInfoForBrowser{}
+	err := GetData(methodBrowserEpochRecord, data, epoch)
+	if err != nil {
+		ZapLog.Error("GetBrowserVote error", zap.Error(err))
+		return nil, err
+	}
+	return data, nil
+}
+
+func GetBrowserVote(epoch uint64) (*types.ArrayCandidateInfoForBrowser, error) {
+	data := &types.ArrayCandidateInfoForBrowser{}
+	err := GetData(methodBrowserVote, data, epoch)
+	if err != nil {
+		ZapLog.Error("GetBrowserVote error", zap.Error(err))
+		return nil, err
+	}
+	return data, nil
+}
+
+func GetBrowserAllEpoch() (*types.Epochs, error) {
+	data := &types.Epochs{}
+	err := GetData(methodBrowserAllEpoch, data)
+	if err != nil {
+		ZapLog.Error("GetBrowserAllEpoch error", zap.Error(err))
+		return nil, err
+	}
+	return data, nil
+}
+
+func GetFeeResultByTime(time uint64, startFeeID uint64, count uint64) (*types.ObjectFeeResult, error) {
+	data := &types.ObjectFeeResult{}
+	err := GetData(methodFeeResult, data, startFeeID, count, time*1000000000)
+	if err != nil {
+		ZapLog.Error("GetFeeResultByTime error", zap.Error(err))
+		return nil, err
+	}
+	return data, nil
+}
 
 func GetCurrentBlockInfo() (*types.RpcBlock, error) {
 	data := &types.RpcBlock{}

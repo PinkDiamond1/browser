@@ -9,11 +9,12 @@ import (
 	"github.com/browser/db"
 	"github.com/browser/dispatch"
 	_ "github.com/browser/init"
+	"github.com/browser/statis"
 )
 
 func main() {
 	SignalHandler()
-	// go statis.Start()
+	go statis.Start()
 	dispatch.NewDispatch().Start()
 }
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/browser/client"
+	"github.com/browser/config"
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"go.uber.org/zap"
@@ -31,7 +32,9 @@ func Start() {
 		irreversible, _ := client.GetDposIrreversible()
 		// fmt.Println(block.Block.Number.Uint64(), irreversible.BftIrreversible)
 		if block.Block.Number.Uint64() <= irreversible.BftIrreversible {
-			ZapLog.Info("statis", zap.Int64("Nmber", block.Block.Number.Int64()), zap.Uint64("height", irreversible.BftIrreversible), zap.Int("txs", len(block.Block.Txs)))
+			if block.Block.Number.Int64()%config.Log.SyncBlockShowNumber == 0 {
+				ZapLog.Info("statis", zap.Int64("Nmber", block.Block.Number.Int64()), zap.Uint64("height", irreversible.BftIrreversible), zap.Int("txs", len(block.Block.Txs)))
+			}
 			if err := a.process(block); err != nil {
 				ZapLog.Error("statis commitBlock ", zap.Error(err))
 				panic(err)

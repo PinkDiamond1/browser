@@ -20,29 +20,29 @@ import (
 	"go.uber.org/zap"
 )
 
-type ananlysis struct {
-	tx             *sql.Tx
-	CurBlock       *types.RpcBlock
-	Receipts       []*types.Receipt
-	DetailTxs      []*types.DetailTx
-	nextDay        int64
-	contrackSSTmap map[string]*db.ContrackStatistics
-	tokenSSTmap    map[string]*db.TokenStatistics
+type analysis struct {
+	tx          *sql.Tx
+	CurBlock    *types.RpcBlock
+	Receipts    []*types.Receipt
+	DetailTxs   []*types.DetailTx
+	nextDay     int64
+	contractsST map[string]*db.ContrackStatistics
+	tokensST    map[string]*db.TokenStatistics
 }
 
 var tokenAssetIDName map[uint64]string
 var tokenShortName map[string]string
 
-func newAnanlysis() *ananlysis {
+func NewAnalysis() *analysis {
 	tokenAssetIDName = make(map[uint64]string, 0)
 	tokenShortName = make(map[string]string, 0)
-	return &ananlysis{
-		contrackSSTmap: make(map[string]*db.ContrackStatistics, 0),
-		tokenSSTmap:    make(map[string]*db.TokenStatistics, 0),
+	return &analysis{
+		contractsST: make(map[string]*db.ContrackStatistics, 0),
+		tokensST:    make(map[string]*db.TokenStatistics, 0),
 	}
 }
 
-func (a *ananlysis) process(data *types.BlockAndResult) error {
+func (a *analysis) process(data *types.BlockAndResult) error {
 	a.tx = db.Mysql.Begin()
 	a.prepare(data.Block, data.Receipts, data.DetailTxs)
 	err := a.tx.Commit()
@@ -59,7 +59,7 @@ func (a *ananlysis) process(data *types.BlockAndResult) error {
 	return err
 }
 
-func (a *ananlysis) prepare(b *types.RpcBlock, r []*types.Receipt, d []*types.DetailTx) {
+func (a *analysis) prepare(b *types.RpcBlock, r []*types.Receipt, d []*types.DetailTx) {
 	a.CurBlock = b
 	a.Receipts = r
 	a.DetailTxs = d
@@ -76,14 +76,14 @@ func (a *ananlysis) prepare(b *types.RpcBlock, r []*types.Receipt, d []*types.De
 	}
 }
 
-func (a *ananlysis) prepareNextDayData() {
-	blocktime := time.Unix(int64(a.CurBlock.Time), 0)
-	next := blocktime.Add(time.Hour)
+func (a *analysis) prepareNextDayData() {
+	bt := time.Unix(int64(a.CurBlock.Time), 0)
+	next := bt.Add(time.Hour)
 	next = time.Date(next.Year(), next.Month(), next.Day(), next.Hour(), 0, 0, 0, next.Location())
 	a.nextDay = next.Unix()
 }
 
-func (a *ananlysis) load() {
+func (a *analysis) load() {
 	tokens, _ := db.LoadTokens()
 	for _, token := range tokens {
 		t := &db.TokenStatistics{}
@@ -93,7 +93,7 @@ func (a *ananlysis) load() {
 		t.Holder_num = token.Holder_num
 		t.Call_num = token.Call_num
 		t.FeeTotal = token.FeeTotal
-		a.tokenSSTmap[token.Token_name] = t
+		a.tokensST[token.Token_name] = t
 	}
 
 	contracts, _ := db.LoadContracts()
@@ -103,7 +103,7 @@ func (a *ananlysis) load() {
 		c.User_num = contract.User_num
 		c.Call_num = contract.Call_num
 		c.FeeTotal = contract.FeeTotal
-		a.contrackSSTmap[contract.Contract_name] = c
+		a.contractsST[contract.Contract_name] = c
 	}
 
 	datafile, err := os.Open("./data.txt")
@@ -125,27 +125,27 @@ func (a *ananlysis) load() {
 		if array[0] == "t" {
 			if array[1] == "u" {
 				for _, u := range array[3:] {
-					a.tokenSSTmap[tmp].User[strings.TrimSpace(u)] = 1
+					a.tokensST[tmp].User[strings.TrimSpace(u)] = 1
 				}
-				if uint64(len(a.tokenSSTmap[tmp].User)) != a.tokenSSTmap[tmp].User_num {
-					ZapLog.Panic(fmt.Sprintf("load token %s user:%d user_num:%d", tmp, len(a.tokenSSTmap[tmp].User), a.tokenSSTmap[tmp].User_num))
+				if uint64(len(a.tokensST[tmp].User)) != a.tokensST[tmp].User_num {
+					ZapLog.Panic(fmt.Sprintf("load token %s user:%d user_num:%d", tmp, len(a.tokensST[tmp].User), a.tokensST[tmp].User_num))
 				}
 			} else if array[1] == "h" {
 				for _, u := range array[3:] {
-					a.tokenSSTmap[tmp].Holder[strings.TrimSpace(u)] = 1
+					a.tokensST[tmp].Holder[strings.TrimSpace(u)] = 1
 				}
-				if uint64(len(a.tokenSSTmap[tmp].Holder)) != a.tokenSSTmap[tmp].Holder_num {
-					ZapLog.Panic(fmt.Sprintf("load token %s holder:%d holder_num:%d", tmp, len(a.tokenSSTmap[tmp].Holder), a.tokenSSTmap[tmp].Holder_num))
+				if uint64(len(a.tokensST[tmp].Holder)) != a.tokensST[tmp].Holder_num {
+					ZapLog.Panic(fmt.Sprintf("load token %s holder:%d holder_num:%d", tmp, len(a.tokensST[tmp].Holder), a.tokensST[tmp].Holder_num))
 				}
 			} else {
 				ZapLog.Panic("")
 			}
 		} else if array[0] == "c" {
 			for _, u := range array[3:] {
-				a.contrackSSTmap[tmp].User[strings.TrimSpace(u)] = 1
+				a.contractsST[tmp].User[strings.TrimSpace(u)] = 1
 			}
-			if uint64(len(a.contrackSSTmap[tmp].User)) != a.contrackSSTmap[tmp].User_num {
-				ZapLog.Panic(fmt.Sprintf("load contract %s user:%d user_num:%d", tmp, len(a.contrackSSTmap[tmp].User), a.contrackSSTmap[tmp].User_num))
+			if uint64(len(a.contractsST[tmp].User)) != a.contractsST[tmp].User_num {
+				ZapLog.Panic(fmt.Sprintf("load contract %s user:%d user_num:%d", tmp, len(a.contractsST[tmp].User), a.contractsST[tmp].User_num))
 			}
 		} else {
 			ZapLog.Panic("")
@@ -159,12 +159,12 @@ func (a *ananlysis) load() {
 // 	ContractGas = 1
 // 	CoinbaseGas = 2
 // )
-func (a *ananlysis) getFeeData() {
+func (a *analysis) getFeeData() {
 	start := uint64(1)
 	count := uint64(1000)
 
-	tokenfee2 := make(map[string]*big.Int, 0)
-	contractfee2 := make(map[string]*big.Int, 0)
+	tokenFee2 := make(map[string]*big.Int, 0)
+	contractFee2 := make(map[string]*big.Int, 0)
 	for {
 		fees, err := client.GetFeeResultByTime(uint64(a.nextDay), start, count)
 		if err != nil {
@@ -177,9 +177,9 @@ func (a *ananlysis) getFeeData() {
 				if strings.Compare(fee.ObjectName, "libra") == 0 || strings.Compare(fee.ObjectName, "bitcoin") == 0 {
 					fee.ObjectName = getFullName(fee.ObjectName)
 				}
-				tokenfee2[fee.ObjectName] = fee.AssetFees[0].TotalFee
+				tokenFee2[fee.ObjectName] = fee.AssetFees[0].TotalFee
 			case 1:
-				contractfee2[fee.ObjectName] = fee.AssetFees[0].TotalFee
+				contractFee2[fee.ObjectName] = fee.AssetFees[0].TotalFee
 			}
 		}
 		if !fees.Continue {
@@ -188,16 +188,16 @@ func (a *ananlysis) getFeeData() {
 		start += uint64(len(fees.ObjectFees))
 	}
 
-	for name, data := range a.tokenSSTmap {
-		feeTotal2, ok := tokenfee2[name]
+	for name, data := range a.tokensST {
+		feeTotal2, ok := tokenFee2[name]
 		if !ok {
 			continue
 		}
 		data.FeeTotal = big.NewInt(0).Set(feeTotal2)
 	}
 
-	for name, data := range a.contrackSSTmap {
-		feeTotal2, ok := contractfee2[name]
+	for name, data := range a.contractsST {
+		feeTotal2, ok := contractFee2[name]
 		if !ok {
 			continue
 		}
@@ -205,23 +205,34 @@ func (a *ananlysis) getFeeData() {
 	}
 }
 
-func (a *ananlysis) processDayData() {
+func (a *analysis) processDayData() {
 	//token
 	var tokenUserRank []common.Uint64Sort
 	var holderCallRank []common.Uint64Sort
 	var tokenCallRank []common.Uint64Sort
 	var totalRank []common.BigIntSort
-	for name, token := range a.tokenSSTmap {
-		element1 := common.Uint64Sort{name, token.User_num}
+	for name, token := range a.tokensST {
+		element1 := common.Uint64Sort{
+			Name:  name,
+			Value: token.User_num,
+		}
 		tokenUserRank = append(tokenUserRank, element1)
 
-		element4 := common.Uint64Sort{name, token.Holder_num}
+		element4 := common.Uint64Sort{
+			Name:  name,
+			Value: token.Holder_num,
+		}
 		holderCallRank = append(holderCallRank, element4)
 
-		element2 := common.Uint64Sort{name, token.Call_num}
+		element2 := common.Uint64Sort{Name: name,
+			Value: token.Call_num,
+		}
 		tokenCallRank = append(tokenCallRank, element2)
 
-		element3 := common.BigIntSort{"0" + name, token.FeeTotal}
+		element3 := common.BigIntSort{
+			Name:  "0" + name,
+			Value: token.FeeTotal,
+		}
 		totalRank = append(totalRank, element3)
 	}
 	common.Uint64SorterProcess(tokenUserRank)
@@ -243,7 +254,7 @@ func (a *ananlysis) processDayData() {
 				rank++
 			}
 		}
-		a.tokenSSTmap[e.Name].User_rank = rank
+		a.tokensST[e.Name].User_rank = rank
 	}
 	first = true
 	rank = 1
@@ -259,7 +270,7 @@ func (a *ananlysis) processDayData() {
 				rank++
 			}
 		}
-		a.tokenSSTmap[e.Name].Call_rank = rank
+		a.tokensST[e.Name].Call_rank = rank
 	}
 	first = true
 	rank = 1
@@ -275,19 +286,28 @@ func (a *ananlysis) processDayData() {
 				rank++
 			}
 		}
-		a.tokenSSTmap[e.Name].Holder_rank = rank
+		a.tokensST[e.Name].Holder_rank = rank
 	}
 	// contract
 	var contractUserRank []common.Uint64Sort
 	var contractCallRank []common.Uint64Sort
-	for name, contrack := range a.contrackSSTmap {
-		element1 := common.Uint64Sort{name, contrack.User_num}
+	for name, contrack := range a.contractsST {
+		element1 := common.Uint64Sort{
+			Name:  name,
+			Value: contrack.User_num,
+		}
 		contractUserRank = append(contractUserRank, element1)
 
-		element2 := common.Uint64Sort{name, contrack.Call_num}
+		element2 := common.Uint64Sort{
+			Name:  name,
+			Value: contrack.Call_num,
+		}
 		contractCallRank = append(contractCallRank, element2)
 
-		element3 := common.BigIntSort{"1" + name, contrack.FeeTotal}
+		element3 := common.BigIntSort{
+			Name:  "1" + name,
+			Value: contrack.FeeTotal,
+		}
 		totalRank = append(totalRank, element3)
 	}
 	common.Uint64SorterProcess(contractUserRank)
@@ -308,7 +328,7 @@ func (a *ananlysis) processDayData() {
 				rank++
 			}
 		}
-		a.contrackSSTmap[e.Name].User_rank = rank
+		a.contractsST[e.Name].User_rank = rank
 	}
 
 	first = true
@@ -325,7 +345,7 @@ func (a *ananlysis) processDayData() {
 				rank++
 			}
 		}
-		a.contrackSSTmap[e.Name].Call_rank = rank
+		a.contractsST[e.Name].Call_rank = rank
 	}
 	var bigSocre *big.Int
 	first = true
@@ -341,13 +361,13 @@ func (a *ananlysis) processDayData() {
 				rank++
 			}
 		}
-		nametype := e.Name[0:1]
+		nT := e.Name[0:1]
 		name := e.Name[1:len(e.Name)]
-		switch nametype {
+		switch nT {
 		case "0":
-			a.tokenSSTmap[name].Income_rank = rank
+			a.tokensST[name].Income_rank = rank
 		case "1":
-			a.contrackSSTmap[name].Income_rank = rank
+			a.contractsST[name].Income_rank = rank
 		}
 
 	}
@@ -360,7 +380,7 @@ func (a *ananlysis) processDayData() {
 		panic("Create data.txt")
 	}
 	defer datafile.Close()
-	for name, t := range a.tokenSSTmap {
+	for name, t := range a.tokensST {
 		if uint64(len(t.User)) != t.User_num {
 			panic(fmt.Sprintf("t u ,%s %d %d", name, len(t.User), t.User_num))
 		}
@@ -400,7 +420,7 @@ func (a *ananlysis) processDayData() {
 		}
 	}
 
-	for name, c := range a.contrackSSTmap {
+	for name, c := range a.contractsST {
 		if uint64(len(c.User)) != c.User_num {
 			panic(fmt.Sprintf("c h ,%s %d %d", name, len(c.User), c.User_num))
 		}
@@ -426,7 +446,7 @@ func (a *ananlysis) processDayData() {
 	db.ReplaceBlockInfo(a.CurBlock.Number.Int64() + 1)
 }
 
-func (a *ananlysis) work() error {
+func (a *analysis) work() error {
 	err := a.analysisTxs()
 	if err != nil {
 		ZapLog.Error("analysisTxs failed", zap.Error(err))
@@ -435,7 +455,7 @@ func (a *ananlysis) work() error {
 	return nil
 }
 
-func (a *ananlysis) analysisTxs() error {
+func (a *analysis) analysisTxs() error {
 	txs := a.CurBlock.Txs
 	for i := 0; i < len(txs); i++ {
 		receipt := a.Receipts[i]
@@ -455,7 +475,7 @@ func (a *ananlysis) analysisTxs() error {
 	return nil
 }
 
-func (a *ananlysis) analysisActions(txindex int, state int) error {
+func (a *analysis) analysisActions(txindex int, state int) error {
 	tx := a.CurBlock.Txs[txindex]
 	actions := tx.RPCActions
 	var internalActions *types.DetailTx
@@ -476,11 +496,11 @@ func (a *ananlysis) analysisActions(txindex int, state int) error {
 		}
 		if internalLog != nil {
 			for j := 0; j < len(internalLog.InternalLogs); j++ {
-				ilog := internalLog.InternalLogs[j]
-				if ilog.Error != "" {
+				iLog := internalLog.InternalLogs[j]
+				if iLog.Error != "" {
 					state = 0
 				}
-				err = a.analysisInternalAction(ilog, state)
+				err = a.analysisInternalAction(iLog, state)
 				if err != nil {
 					ZapLog.Error("analysisInternalAction", zap.Error(err))
 					return err
@@ -491,23 +511,23 @@ func (a *ananlysis) analysisActions(txindex int, state int) error {
 	return nil
 }
 
-func (a *ananlysis) analysisAction(action *types.RPCAction, state int) error {
+func (a *analysis) analysisAction(action *types.RPCAction, state int) error {
 	if state == types.ReceiptStatusSuccessful {
 		a.analysisAccount(action)
 	}
 	return nil
 }
 
-func (a *ananlysis) analysisInternalAction(internalLog *types.InternalLog, state int) error {
+func (a *analysis) analysisInternalAction(internalLog *types.InternalLog, state int) error {
 	if state == types.ReceiptStatusSuccessful {
 		a.analysisAccount(internalLog.Action)
 	}
 	return nil
 }
 
-func (a *ananlysis) tokenProcess(action *types.RPCAction) {
+func (a *analysis) tokenProcess(action *types.RPCAction) {
 	t := a.getTokenName(action.AssetID)
-	token, _ := a.tokenSSTmap[t]
+	token, _ := a.tokensST[t]
 	user := action.From.String()
 	holder := action.To.String()
 
@@ -528,14 +548,14 @@ func (a *ananlysis) tokenProcess(action *types.RPCAction) {
 	token.Call_num++
 }
 
-func (a *ananlysis) contractProcess(action *types.RPCAction) {
+func (a *analysis) contractProcess(action *types.RPCAction) {
 	c := action.To.String()
-	contract, ok := a.contrackSSTmap[c]
+	contract, ok := a.contractsST[c]
 	if !ok {
 		contract = &db.ContrackStatistics{}
 		contract.User = make(map[string]int, 0)
 		contract.FeeTotal = big.NewInt(0)
-		a.contrackSSTmap[c] = contract
+		a.contractsST[c] = contract
 	}
 
 	user := action.From.String()
@@ -553,7 +573,7 @@ var dpos = "fractal.dpos"
 var fee = "fractal.fee"
 var admin = "fractal.admin"
 
-func (a *ananlysis) analysisAccount(action *types.RPCAction) {
+func (a *analysis) analysisAccount(action *types.RPCAction) {
 	if action.Amount.Cmp(types.Big0) > 0 {
 		a.tokenProcess(action)
 	}
@@ -579,23 +599,23 @@ func (a *ananlysis) analysisAccount(action *types.RPCAction) {
 			panic(fmt.Sprintf("GetAssetInfoByName err:%s", err))
 		}
 
-		assetname := asset.AssetName
+		assetName := asset.AssetName
 		if action.From.String() != "" {
 			if strings.Compare(asset.AssetName, "libra") == 0 || strings.Compare(asset.AssetName, "bitcoin") == 0 {
-				assetname = action.From.String() + ":" + asset.AssetName
-				tokenShortName[asset.AssetName] = assetname
+				assetName = action.From.String() + ":" + asset.AssetName
+				tokenShortName[asset.AssetName] = assetName
 			}
 		}
-		db.InsertTokenInfo(assetname, assetInfo.Decimals, assetInfo.AssetId, asset.AssetName)
-		tokenAssetIDName[assetInfo.AssetId] = assetname
+		db.InsertTokenInfo(assetName, assetInfo.Decimals, assetInfo.AssetId, asset.AssetName)
+		tokenAssetIDName[assetInfo.AssetId] = assetName
 
-		token, ok := a.tokenSSTmap[assetname]
+		token, ok := a.tokensST[assetName]
 		if !ok {
 			token = &db.TokenStatistics{}
 			token.User = make(map[string]int, 0)
 			token.Holder = make(map[string]int, 0)
 			token.FeeTotal = big.NewInt(0)
-			a.tokenSSTmap[assetname] = token
+			a.tokensST[assetName] = token
 		}
 
 		holder := asset.Owner.String()
@@ -605,17 +625,17 @@ func (a *ananlysis) analysisAccount(action *types.RPCAction) {
 	}
 }
 
-func (a *ananlysis) getTokenName(assetid uint64) string {
-	data, ok := tokenAssetIDName[assetid]
+func (a *analysis) getTokenName(assetId uint64) string {
+	data, ok := tokenAssetIDName[assetId]
 	if !ok {
-		_, name, shortName, err := db.GetTokenInfoByAssetID(assetid)
+		_, name, shortName, err := db.GetTokenInfoByAssetID(assetId)
 		if err == sql.ErrNoRows {
-			ZapLog.Panic("getTokenName falid", zap.Uint64("assetid", assetid))
+			ZapLog.Panic("getTokenName null", zap.Uint64("assetId", assetId))
 		} else if err != nil {
 			ZapLog.Panic(fmt.Sprintf("getTokenName err:%s", err))
 		}
 		data = name
-		tokenAssetIDName[assetid] = name
+		tokenAssetIDName[assetId] = name
 		if !strings.Contains(shortName, ":") {
 			tokenShortName[shortName] = name
 		}

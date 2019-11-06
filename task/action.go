@@ -56,8 +56,10 @@ func (a *ActionTask) analysisAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 			if actionResult.Status == types.ReceiptStatusSuccessful {
 				if action.Type == types.IssueAsset {
 					issueAssetPayload := parsedPayload.(types.IssueAssetObject)
-					if strings.Compare(issueAssetPayload.AssetName, "libra") == 0 || strings.Compare(issueAssetPayload.AssetName, "bitcoin") == 0 {
-						issueAssetPayload.AssetName = action.From.String() + ":" + issueAssetPayload.AssetName
+					if idx := strings.Index(issueAssetPayload.AssetName, ":"); idx <= 0 {
+						if len(action.From.String()) > 0 {
+							issueAssetPayload.AssetName = action.From.String() + ":" + issueAssetPayload.AssetName
+						}
 					}
 					parsedPayload = issueAssetPayload
 				}

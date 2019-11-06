@@ -3,7 +3,6 @@ package task
 import (
 	"database/sql"
 	"github.com/browser/client"
-	"github.com/browser/config"
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"github.com/browser/types"
@@ -68,16 +67,16 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 			actionReceipt := receipt.ActionResults[j]
 			fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(actionReceipt.GasUsed), big.NewInt(0).SetUint64(tx.GasPrice.Uint64()))
 			if data.Block.Number.Uint64() > 0 {
-				if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
+				if at.From.String() != "" {
 					changeBalance(balanceChangedMap, at.From.String(), tx.GasAssetID, fee, false)
 				}
 			}
 			if actionReceipt.Status == types.ReceiptStatusSuccessful {
 				if at.Amount.Cmp(big.NewInt(0)) > 0 {
-					if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
+					if at.From.String() != "" {
 						changeBalance(balanceChangedMap, at.From.String(), at.AssetID, at.Amount, false)
 					}
-					if at.To.String() != "" && at.To.String() != config.Chain.ChainFeeName {
+					if at.To.String() != "" {
 						changeBalance(balanceChangedMap, at.To.String(), at.AssetID, at.Amount, true)
 					}
 				}
@@ -102,10 +101,10 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 				if len(detailTxs) != 0 {
 					internalActions := detailTxs[i].InternalActions[j]
 					for _, iat := range internalActions.InternalLogs {
-						if iat.Action.From.String() != "" && iat.Action.From.String() != config.Chain.ChainFeeName {
+						if iat.Action.From.String() != "" {
 							changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, false)
 						}
-						if iat.Action.To.String() != "" && iat.Action.To.String() != config.Chain.ChainFeeName {
+						if iat.Action.To.String() != "" {
 							changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, true)
 						}
 					}
@@ -179,7 +178,7 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 		for j, at := range tx.RPCActions {
 			actionReceipt := receipt.ActionResults[j]
 			fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(actionReceipt.GasUsed), big.NewInt(0).SetUint64(tx.GasPrice.Uint64()))
-			if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
+			if at.From.String() != "" {
 				err := addBalance(at.From.String(), tx.GasAssetID, fee, data.Block.Number.Uint64(), data.Block.Time, dbTx)
 				if err != nil {
 					ZapLog.Error("add fee error: ", zap.Error(err), zap.String("fee from", at.From.String()))
@@ -188,20 +187,20 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 			}
 			if actionReceipt.Status == types.ReceiptStatusSuccessful {
 				if at.Amount.Cmp(big.NewInt(0)) > 0 {
-					if at.To.String() != "" && at.To.String() != config.Chain.ChainFeeName {
+					if at.To.String() != "" {
 						changeBalance(balanceChangedMap, at.To.String(), at.AssetID, at.Amount, false)
 					}
-					if at.From.String() != "" && at.From.String() != config.Chain.ChainFeeName {
+					if at.From.String() != "" {
 						changeBalance(balanceChangedMap, at.From.String(), at.AssetID, at.Amount, true)
 					}
 				}
 				if len(detailTxs) != 0 {
 					internalActions := detailTxs[i].InternalActions[j]
 					for _, iat := range internalActions.InternalLogs {
-						if iat.Action.To.String() != "" && iat.Action.To.String() != config.Chain.ChainFeeName {
+						if iat.Action.To.String() != "" {
 							changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, false)
 						}
-						if iat.Action.From.String() != "" && iat.Action.From.String() != config.Chain.ChainFeeName {
+						if iat.Action.From.String() != "" {
 							changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, true)
 						}
 					}

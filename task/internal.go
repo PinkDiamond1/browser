@@ -63,8 +63,10 @@ func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *
 				if ar.Status == types.ReceiptStatusSuccessful {
 					if ia.Action.Type == types.IssueAsset {
 						issueAssetPayload := parsedPayload.(types.IssueAssetObject)
-						if strings.Compare(issueAssetPayload.AssetName, "libra") == 0 || strings.Compare(issueAssetPayload.AssetName, "bitcoin") == 0 {
-							issueAssetPayload.AssetName = ia.Action.From.String() + ":" + issueAssetPayload.AssetName
+						if idx := strings.Index(issueAssetPayload.AssetName, ":"); idx <= 0 {
+							if len(ia.Action.From.String()) > 0 {
+								issueAssetPayload.AssetName = ia.Action.From.String() + ":" + issueAssetPayload.AssetName
+							}
 						}
 						parsedPayload = issueAssetPayload
 					}

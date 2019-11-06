@@ -174,9 +174,15 @@ func (a *ananlysis) getFeeData() {
 		for _, fee := range fees.ObjectFees {
 			switch fee.ObjectType {
 			case 0:
-				if strings.Compare(fee.ObjectName, "libra") == 0 || strings.Compare(fee.ObjectName, "bitcoin") == 0 {
-					fee.ObjectName = getFullName(fee.ObjectName)
+				if idx := strings.Index(fee.ObjectName, ":"); idx <= 0 {
+					name := getFullName(fee.ObjectName)
+					if name != "" {
+						fee.ObjectName = name
+					}
 				}
+				// if strings.Compare(fee.ObjectName, "libra") == 0 || strings.Compare(fee.ObjectName, "bitcoin") == 0 {
+				// 	fee.ObjectName = getFullName(fee.ObjectName)
+				// }
 				tokenfee2[fee.ObjectName] = fee.AssetFees[0].TotalFee
 			case 1:
 				contractfee2[fee.ObjectName] = fee.AssetFees[0].TotalFee
@@ -580,12 +586,18 @@ func (a *ananlysis) analysisAccount(action *types.RPCAction) {
 		}
 
 		assetname := asset.AssetName
-		if action.From.String() != "" {
-			if strings.Compare(asset.AssetName, "libra") == 0 || strings.Compare(asset.AssetName, "bitcoin") == 0 {
+		if idx := strings.Index(asset.AssetName, ":"); idx <= 0 {
+			if len(action.From.String()) > 0 {
 				assetname = action.From.String() + ":" + asset.AssetName
 				tokenShortName[asset.AssetName] = assetname
 			}
 		}
+		// if action.From.String() != "" {
+		// 	if strings.Compare(asset.AssetName, "libra") == 0 || strings.Compare(asset.AssetName, "bitcoin") == 0 {
+		// 		assetname = action.From.String() + ":" + asset.AssetName
+		// 		tokenShortName[asset.AssetName] = assetname
+		// 	}
+		// }
 		db.InsertTokenInfo(assetname, assetInfo.Decimals, assetInfo.AssetId, asset.AssetName)
 		tokenAssetIDName[assetInfo.AssetId] = assetname
 

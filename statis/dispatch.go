@@ -1,7 +1,6 @@
 package statis
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/browser/client"
@@ -16,7 +15,7 @@ var (
 )
 
 func Start() {
-	a := newAnanlysis()
+	a := NewAnalysis()
 	fromNumber, _ := db.GetBlockHeight()
 	for {
 		block, err := client.GetBlockAndResult(fromNumber)
@@ -30,18 +29,16 @@ func Start() {
 			continue
 		}
 		irreversible, _ := client.GetDposIrreversible()
-		// fmt.Println(block.Block.Number.Uint64(), irreversible.BftIrreversible)
 		if block.Block.Number.Uint64() <= irreversible.BftIrreversible {
 			if block.Block.Number.Int64()%config.Log.SyncBlockShowNumber == 0 {
-				ZapLog.Info("statis", zap.Int64("Nmber", block.Block.Number.Int64()), zap.Uint64("height", irreversible.BftIrreversible), zap.Int("txs", len(block.Block.Txs)))
+				ZapLog.Info("statistical", zap.Int64("number", block.Block.Number.Int64()), zap.Uint64("height", irreversible.BftIrreversible), zap.Int("txs", len(block.Block.Txs)))
 			}
 			if err := a.process(block); err != nil {
-				ZapLog.Error("statis commitBlock ", zap.Error(err))
+				ZapLog.Error("statistical commitBlock ", zap.Error(err))
 				panic(err)
 			}
 			fromNumber = block.Block.Number.Int64() + 1
 		} else {
-			fmt.Println("6")
 			time.Sleep(syncDuration)
 		}
 	}

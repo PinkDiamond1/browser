@@ -3,6 +3,7 @@ package task
 import (
 	"database/sql"
 	"github.com/browser/client"
+	"github.com/browser/config"
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"github.com/browser/types"
@@ -70,6 +71,7 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 				if at.From.String() != "" {
 					changeBalance(balanceChangedMap, at.From.String(), tx.GasAssetID, fee, false)
 				}
+				changeBalance(balanceChangedMap, config.Chain.ChainFeeName, tx.GasAssetID, fee, true)
 			}
 			if actionReceipt.Status == types.ReceiptStatusSuccessful {
 				if at.Amount.Cmp(big.NewInt(0)) > 0 {

@@ -2,6 +2,7 @@ package task
 
 import (
 	"database/sql"
+	"github.com/browser/client"
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"github.com/browser/types"
@@ -13,6 +14,22 @@ type FeeTask struct {
 	*Base
 	TokenIncome    *big.Int
 	ContractIncome *big.Int
+	nodeTokens     map[string]string
+}
+
+func (f *FeeTask) getTokenName(dbTx *sql.Tx, name string) (string, error) {
+	if tokenName, ok := f.nodeTokens[name]; ok {
+		return tokenName, nil
+	} else {
+		asset, err := client.GetAssetInfoByName(name)
+		if err != nil {
+			ZapLog.Error("GetAssetInfoByName error", zap.Error(err), zap.String("name", name))
+			return "", err
+		}
+		dbToken := db.QueryTokenById(dbTx, asset.AssetId)
+		f.nodeTokens[name] = dbToken.AssetName
+		return dbToken.AssetName, nil
+	}
 }
 
 func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) error {
@@ -36,6 +53,13 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 					To:          aR.Account.String(),
 					Amount:      fee,
 					Reason:      aR.Reason,
+				}
+				if aR.Reason == 0 {
+					assetName, err := f.getTokenName(dbTx, aR.Account.String())
+					if err != nil {
+						return err
+					}
+					mFee.To = assetName
 				}
 				err := db.InsertFee(mFee, dbTx)
 				if err != nil {
@@ -95,6 +119,7 @@ func (f *FeeTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 }
 
 func (f *FeeTask) Start(data chan *TaskChanData, rollbackData chan *TaskChanData, result chan bool, startHeight uint64) {
+	f.nodeTokens = make(map[string]string)
 	f.startHeight = startHeight
 	chain, err := db.Mysql.GetChainStatus()
 	if err != nil {

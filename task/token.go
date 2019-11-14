@@ -194,7 +194,6 @@ func saveToken(tx *sql.Tx, action *types.RPCAction, blockTime uint64, height uin
 			db.AddBackupToken(tx, dbToken, height)
 		}
 		dbToken.Liquidity = big.NewInt(0).Sub(dbToken.Liquidity, action.Amount)
-		dbToken.CumulativeIssue = big.NewInt(0).Sub(dbToken.CumulativeIssue, action.Amount)
 		dbToken.CumulativeDestruction = big.NewInt(0).Add(dbToken.CumulativeDestruction, action.Amount)
 		dbToken.UpdateTime = blockTime
 		db.UpdateTokenById(tx, dbToken)

@@ -605,21 +605,15 @@ func (a *analysis) analysisAccount(action *types.RPCAction) {
 			panic(fmt.Sprintf("GetAssetInfoByName err:%s", err))
 		}
 
-		assetname := asset.AssetName
+		assetName := asset.AssetName
 		if idx := strings.Index(asset.AssetName, ":"); idx <= 0 {
 			if len(action.From.String()) > 0 {
-				assetname = action.From.String() + ":" + asset.AssetName
-				tokenShortName[asset.AssetName] = assetname
+				assetName = action.From.String() + ":" + asset.AssetName
+				tokenShortName[asset.AssetName] = assetName
 			}
 		}
-		// if action.From.String() != "" {
-		// 	if strings.Compare(asset.AssetName, "libra") == 0 || strings.Compare(asset.AssetName, "bitcoin") == 0 {
-		// 		assetname = action.From.String() + ":" + asset.AssetName
-		// 		tokenShortName[asset.AssetName] = assetname
-		// 	}
-		// }
-		db.InsertTokenInfo(assetname, assetInfo.Decimals, assetInfo.AssetId, asset.AssetName)
-		tokenAssetIDName[assetInfo.AssetId] = assetname
+		db.InsertTokenInfo(assetName, assetInfo.Decimals, assetInfo.AssetId, asset.AssetName)
+		tokenAssetIDName[assetInfo.AssetId] = assetName
 
 		token, ok := a.tokensST[assetName]
 		if !ok {

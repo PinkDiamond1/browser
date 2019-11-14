@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/browser/config"
 	. "github.com/browser/log"
 	"github.com/browser/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ftbrowser/common"
 	"go.uber.org/zap"
 )
 
@@ -30,8 +28,8 @@ const (
 )
 
 func GetAccountByID(id uint64) (string, error) {
-	request := common.NewRPCRequest("2.0", methodAccountByID, id)
-	jsonParsed, err := common.SendRPCRequst(config.Node.RpcUrl, request)
+	request := NewRPCRequest("2.0", methodAccountByID, id)
+	jsonParsed, err := SendRPCRequest(request)
 	if err != nil {
 		ZapLog.Error(fmt.Sprintf("GetAccountByID SendRPCRequst error --- %s", err))
 		return "", err
@@ -46,7 +44,9 @@ func GetAccountByID(id uint64) (string, error) {
 func GetFeeResultByTime(time uint64, startFeeID uint64, count uint64) (*types.ObjectFeeResult, error) {
 	data := &types.ObjectFeeResult{}
 	err := GetData(methodFeeResult, data, startFeeID, count, time*1000000000)
-	if err != nil {
+	if err == ErrNull {
+		ZapLog.Info("GetFeeResultByTime error", zap.Error(err))
+	} else if err != nil {
 		ZapLog.Error("GetFeeResultByTime error", zap.Error(err))
 		return nil, err
 	}

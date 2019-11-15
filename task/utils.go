@@ -2,6 +2,7 @@ package task
 
 import (
 	"bytes"
+	"github.com/browser/client"
 	. "github.com/browser/log"
 	"github.com/browser/rlp"
 	"github.com/browser/types"
@@ -135,6 +136,12 @@ func parsePayload(action *types.RPCAction) (interface{}, error) {
 			Contract:    issueAssetPayload.Contract,
 			Description: issueAssetPayload.Description,
 		}
+		asset, err := client.GetAssetInfoByName(issueAssetPayload.AssetName)
+		if err != nil {
+			ZapLog.Error("GetAssetInfoByName error", zap.Error(err), zap.String("name", issueAssetPayload.AssetName))
+			return nil, err
+		}
+		tmpPayload.Decimals = asset.Decimals
 		parsedPayload = tmpPayload
 		//}
 	}

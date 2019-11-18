@@ -160,7 +160,7 @@ func saveToken(tx *sql.Tx, action *types.RPCAction, blockTime uint64, height uin
 		dbToken := &db.Token{}
 		dbToken.AssetName = tokenName
 		dbToken.AssetSymbol = obj.Symbol
-		dbToken.Decimals = obj.Decimals
+		dbToken.Decimals = tokenInfo.Decimals
 		dbToken.AssetId = tokenInfo.AssetId
 		dbToken.ContractName = tokenInfo.Contract.String()
 		dbToken.Description = obj.Description
@@ -232,7 +232,13 @@ func rollbackToken(tx *sql.Tx, action *types.RPCAction, blockTime uint64, height
 	iActionAsset, _ := parsePayload(action)
 	if action.Type == types.IssueAsset {
 		obj := iActionAsset.(types.IssueAssetObject)
-		db.DeleteTokenByName(tx, obj.AssetName)
+		tokenName := obj.AssetName
+		if idx := strings.Index(obj.AssetName, ":"); idx <= 0 {
+			if len(action.From.String()) > 0 {
+				tokenName = action.From.String() + ":" + obj.AssetName
+			}
+		}
+		db.DeleteTokenByName(tx, tokenName)
 	} else if action.Type == types.IncreaseAsset {
 		obj := iActionAsset.(types.IncAssetObject)
 		dbToken := db.QueryTokenBackupById(tx, obj.AssetId, height)

@@ -43,7 +43,7 @@ func InsertInternalAction(data *MysqlInternal, dbTx *sql.Tx) error {
 	_, err = stmt.Exec(data.TxHash, data.ActionHash, data.Height, data.Created, data.ActionIndex, data.InternalIndex, data.AssetId,
 		data.ActionType, data.From, data.To, data.Amount.String(), data.GasLimit, data.GasUsed, data.Depth, strconv.FormatUint(data.State, 10), data.ErrorMsg, data.Payload)
 	if err != nil {
-		ZapLog.Panic("InsertInternalAction error", zap.Error(err), zap.String("txHash", data.TxHash))
+		ZapLog.Panic("InsertInternalAction error", zap.Error(err), zap.String("txHash", data.TxHash), zap.Uint64("assetid", data.AssetId))
 	}
 	return nil
 }

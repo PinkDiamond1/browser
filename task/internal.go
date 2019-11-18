@@ -16,6 +16,8 @@ type InternalTask struct {
 	*Base
 }
 
+const maxuint = 2147483647
+
 func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	for i, itx := range data.DetailTxs {
 		tx := data.Block.Txs[i]
@@ -37,6 +39,10 @@ func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *
 							ia.Action.Type = types.Transfer
 						}
 					}
+				}
+
+				if uint64(maxuint) < ia.Action.AssetID {
+					ia.Action.AssetID = uint64(maxuint)
 				}
 				mInternal := &db.MysqlInternal{
 					TxHash:        tx.Hash.String(),

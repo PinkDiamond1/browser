@@ -35,12 +35,19 @@ func (f *FeeTask) getTokenName(dbTx *sql.Tx, name string) (string, error) {
 func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	receipts := data.Receipts
 	txs := data.Block.Txs
+	bigZero := big.NewInt(0)
 	for i, receipt := range receipts {
 		tx := txs[i]
+		gasPrice := big.NewInt(0).Set(tx.GasPrice)
 		for j, aRs := range receipt.ActionResults {
 			at := tx.RPCActions[j]
 			for k, aR := range aRs.GasAllot {
-				fee := big.NewInt(0).Mul(big.NewInt(int64(aR.Gas)), tx.GasPrice)
+				if tx.GasPrice.Cmp(bigZero) == 0 {
+					if at.PayerGasPrice != nil {
+						gasPrice.Set(at.PayerGasPrice)
+					}
+				}
+				fee := big.NewInt(0).Mul(big.NewInt(int64(aR.Gas)), gasPrice)
 				mFee := &db.MysqlFee{
 					TxHash:      tx.Hash.String(),
 					ActionHash:  at.ActionHash.String(),

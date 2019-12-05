@@ -62,14 +62,23 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 	receipts := data.Receipts
 	detailTxs := data.DetailTxs
 	balanceChangedMap := make(map[string]map[uint64]*big.Int)
+	zeroBig := big.NewInt(0)
 	for i, tx := range txs {
 		receipt := receipts[i]
 		for j, at := range tx.RPCActions {
 			actionReceipt := receipt.ActionResults[j]
-			fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(actionReceipt.GasUsed), big.NewInt(0).SetUint64(tx.GasPrice.Uint64()))
+			gasPrice := big.NewInt(0).Set(tx.GasPrice)
+			gasFrom := at.From.String()
+			if gasPrice.Cmp(zeroBig) == 0 {
+				if at.PayerGasPrice != nil {
+					gasPrice.Set(at.PayerGasPrice)
+					gasFrom = at.Payer.String()
+				}
+			}
+			fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(actionReceipt.GasUsed), gasPrice)
 			if data.Block.Number.Uint64() > 0 {
-				if at.From.String() != "" {
-					changeBalance(balanceChangedMap, at.From.String(), tx.GasAssetID, fee, false)
+				if gasFrom != "" {
+					changeBalance(balanceChangedMap, gasFrom, tx.GasAssetID, fee, false)
 				}
 				changeBalance(balanceChangedMap, config.Chain.ChainFeeName, tx.GasAssetID, fee, true)
 			}
@@ -174,16 +183,25 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	txs := data.Block.Txs
 	receipts := data.Receipts
 	detailTxs := data.DetailTxs
+	zeroBig := big.NewInt(0)
 	balanceChangedMap := make(map[string]map[uint64]*big.Int)
 	for i, tx := range txs {
 		receipt := receipts[i]
 		for j, at := range tx.RPCActions {
 			actionReceipt := receipt.ActionResults[j]
-			fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(actionReceipt.GasUsed), big.NewInt(0).SetUint64(tx.GasPrice.Uint64()))
-			if at.From.String() != "" {
-				err := addBalance(at.From.String(), tx.GasAssetID, fee, data.Block.Number.Uint64(), data.Block.Time, dbTx)
+			gasPrice := big.NewInt(0).Set(tx.GasPrice)
+			gasFrom := at.From.String()
+			if gasPrice.Cmp(zeroBig) == 0 {
+				if at.PayerGasPrice != nil {
+					gasPrice.Set(at.PayerGasPrice)
+					gasFrom = at.Payer.String()
+				}
+			}
+			fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(actionReceipt.GasUsed), gasPrice)
+			if gasFrom != "" {
+				err := addBalance(gasFrom, tx.GasAssetID, fee, data.Block.Number.Uint64(), data.Block.Time, dbTx)
 				if err != nil {
-					ZapLog.Error("add fee error: ", zap.Error(err), zap.String("fee from", at.From.String()))
+					ZapLog.Error("add fee error: ", zap.Error(err), zap.String("fee from", gasFrom))
 					return err
 				}
 			}

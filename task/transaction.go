@@ -43,7 +43,13 @@ func (b *TransactionTask) analysisTransaction(data *types.BlockAndResult, dbTx *
 			ZapLog.Error("InsertTransaction error: ", zap.Error(err), zap.Uint64("height", block.Number.Uint64()), zap.Int("txIndex", i))
 			return err
 		}
-		fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(mTx.GasUsed), mTx.GasPrice)
+		gasPrice := big.NewInt(0).Set(tx.GasPrice)
+		if gasPrice.Cmp(big.NewInt(0)) == 0 {
+			if tx.RPCActions[0].PayerGasPrice != nil {
+				gasPrice.Set(tx.RPCActions[0].PayerGasPrice)
+			}
+		}
+		fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(mTx.GasUsed), gasPrice)
 		b.FeeIncome = b.FeeIncome.Add(b.FeeIncome, fee)
 	}
 	b.TxCount += uint64(len(block.Txs))
@@ -67,7 +73,13 @@ func (b *TransactionTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) err
 			ZapLog.Error("DeleteTransactionByHash error: ", zap.Error(err), zap.Uint64("height", data.Block.Number.Uint64()), zap.String("txHash", tx.Hash.String()))
 			return err
 		}
-		fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(receipt.TotalGasUsed), tx.GasPrice)
+		gasPrice := big.NewInt(0).Set(tx.GasPrice)
+		if gasPrice.Cmp(big.NewInt(0)) == 0 {
+			if tx.RPCActions[0].PayerGasPrice != nil {
+				gasPrice.Set(tx.RPCActions[0].PayerGasPrice)
+			}
+		}
+		fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(receipt.TotalGasUsed), gasPrice)
 		b.FeeIncome = b.FeeIncome.Sub(b.FeeIncome, fee)
 	}
 	b.TxCount -= uint64(len(data.Block.Txs))

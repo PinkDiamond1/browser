@@ -45,4 +45,3 @@ type Account struct {
 	Destroy               bool            `json:"destroy"`
 	Description           string          `json:"description"`
 }
-

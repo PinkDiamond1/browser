@@ -21,6 +21,7 @@ func (b *BlockTask) analysisBlock(d *types.BlockAndResult, dbTx *sql.Tx) error {
 	height := d.Block.Number.Uint64()
 	blockFee := big.NewInt(0)
 	txs := d.Block.Txs
+	bigZero := big.NewInt(0)
 	for i := 0; i < len(txs); i++ {
 		receipt := d.Receipts[i]
 		err := db.InsertBlockTx(b.Tx, height, receipt.TxHash)
@@ -28,7 +29,13 @@ func (b *BlockTask) analysisBlock(d *types.BlockAndResult, dbTx *sql.Tx) error {
 			ZapLog.Panic("InsertBlockTx error: ", zap.Error(err), zap.Uint64("height", height))
 			return err
 		}
-		fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(receipt.TotalGasUsed), big.NewInt(0).SetUint64(txs[i].GasPrice.Uint64()))
+		gasPrice := big.NewInt(0).Set(txs[i].GasPrice)
+		if gasPrice.Cmp(bigZero) == 0 {
+			if txs[i].RPCActions[0].PayerGasPrice != nil {
+				gasPrice.Set(txs[i].RPCActions[0].PayerGasPrice)
+			}
+		}
+		fee := big.NewInt(0).Mul(big.NewInt(0).SetUint64(receipt.TotalGasUsed), gasPrice)
 		blockFee = blockFee.Add(blockFee, fee)
 	}
 	err := db.InsertBlockChain(b.Tx, d.Block, d.Block.Hash, blockFee, len(txs))

@@ -12,19 +12,19 @@ import (
 )
 
 const (
-	methodCurrentBlock           = "ft_getCurrentBlock"
-	methodBlockByNumber          = "ft_getBlockByNumber"
-	methodChainConfig            = "ft_getChainConfig"
-	methodBlockAndResultByNumber = "ft_getBlockAndResultByNumber"
-	methodFeeResult              = "fee_getObjectFeeResult"
-	methodSendRawTransaction     = "ft_sendRawTransaction"
-	methodAssetInfoByName        = "account_getAssetInfoByName"
-	methodAssetInfoByID          = "account_getAssetInfoByID"
-	methodGetAccountByName       = "account_getAccountByName"
-	methodGetCode                = "account_getCode"
-	methodAccountByID            = "account_getAccountByID"
-	methodDposCadidatesSize      = "dpos_candidatesSize"
-	methodDposIrreversible       = "dpos_irreversible"
+	methodCurrentBlock                    = "ft_getCurrentBlock"
+	methodBlockByNumber                   = "ft_getBlockByNumber"
+	methodChainConfig                     = "ft_getChainConfig"
+	methodBlockAndResultByNumberWithPayer = "ft_getBlockAndResultByNumberWithPayer"
+	methodFeeResult                       = "fee_getObjectFeeResult"
+	methodSendRawTransaction              = "ft_sendRawTransaction"
+	methodAssetInfoByName                 = "account_getAssetInfoByName"
+	methodAssetInfoByID                   = "account_getAssetInfoByID"
+	methodGetAccountByName                = "account_getAccountByName"
+	methodGetCode                         = "account_getCode"
+	methodAccountByID                     = "account_getAccountByID"
+	methodDposCadidatesSize               = "dpos_candidatesSize"
+	methodDposIrreversible                = "dpos_irreversible"
 )
 
 func GetAccountByID(id uint64) (string, error) {
@@ -107,7 +107,7 @@ func GetCandidatesCount() (uint64, error) {
 
 func GetBlockAndResult(number int64) (*types.BlockAndResult, error) {
 	data := &types.BlockAndResult{}
-	err := GetData(methodBlockAndResultByNumber, &data, number)
+	err := GetData(methodBlockAndResultByNumberWithPayer, &data, number)
 	if err == ErrNull {
 		return nil, err
 	}

@@ -73,7 +73,7 @@ func scanning(fromHeight, toHeight int64, blockDataChan chan *types.BlockAndResu
 					case number := <-chParse:
 						block, err := client.GetBlockAndResult(number)
 						if err != nil {
-							ZapLog.Panic("getBlockByNumber failed", zap.Error(err))
+							ZapLog.Panic("GetBlockAndResult failed", zap.Error(err), zap.Int64("height", number))
 						}
 						index := (number - startNumber) % int64(rpcWorkers)
 

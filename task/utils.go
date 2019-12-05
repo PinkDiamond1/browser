@@ -118,6 +118,13 @@ func parsePayload(action *types.RPCAction) (interface{}, error) {
 			return nil, err
 		}
 		parsedPayload = arg
+	case types.UpdateCandidatePubKey:
+		arg := types.DposUpdateCandidatePubKey{}
+		if err := rlp.DecodeBytes(action.Payload, &arg); err != nil {
+			ZapLog.Error("DecodeBytes UpdateCandidatePubKey payload failed, error: ", zap.Error(err))
+			return nil, err
+		}
+		parsedPayload = arg
 	default:
 		return action.Payload, nil
 	}

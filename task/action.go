@@ -48,6 +48,8 @@ func (a *ActionTask) analysisAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 				ErrorMsg:        actionResult.Error,
 				Remark:          []byte(fmt.Sprintf("%s", []byte(action.Remark))),
 				InternalCount:   internalCount,
+				Payer:           action.Payer.String(),
+				PayerGasPrice:   action.PayerGasPrice,
 			}
 			parsedPayload, err := parsePayload(action)
 			if err != nil {

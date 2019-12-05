@@ -24,3 +24,7 @@ type DposIrreversible struct {
 	ProposedIrreversible uint64 `json:"proposedIrreversible"`
 	BftIrreversible      uint64 `json:"bftIrreversible"`
 }
+
+type DposUpdateCandidatePubKey struct {
+	PubKey PubKey
+}

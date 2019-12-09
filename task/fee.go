@@ -41,10 +41,12 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 		gasPrice := big.NewInt(0).Set(tx.GasPrice)
 		for j, aRs := range receipt.ActionResults {
 			at := tx.RPCActions[j]
+			feeFrom := at.From.String()
 			for k, aR := range aRs.GasAllot {
 				if tx.GasPrice.Cmp(bigZero) == 0 {
 					if at.PayerGasPrice != nil {
 						gasPrice.Set(at.PayerGasPrice)
+						feeFrom = at.Payer.String()
 					}
 				}
 				fee := big.NewInt(0).Mul(big.NewInt(int64(aR.Gas)), gasPrice)
@@ -56,7 +58,7 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 					Height:      data.Block.Number.Uint64(),
 					Created:     data.Block.Time,
 					AssetId:     tx.GasAssetID,
-					From:        at.From.String(),
+					From:        feeFrom,
 					To:          aR.Account.String(),
 					Amount:      fee,
 					Reason:      aR.Reason,

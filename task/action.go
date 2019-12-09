@@ -29,27 +29,52 @@ func (a *ActionTask) analysisAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 					internalCount = len(internalTxs[i].InternalActions[j].InternalLogs)
 				}
 			}
+			getSigner := func(account, substr string, index uint64) string {
+				var singer string
+				if index <= 0 {
+					return singer
+				}
+				cnt := strings.IndexAny(account, substr)
+				if index > uint64(cnt) {
+					return singer
+				}
+				for i := uint64(0); i < index; i++ {
+					lastIndex := strings.LastIndex(account, ".")
+					account = string([]byte(account)[:lastIndex])
+				}
+				singer = account
+				return singer
+			}
+			var parentSinger, payerParentSigner string
+			if action.ParentIndex > 0 {
+				parentSinger = getSigner(action.From.String(), ".", action.ParentIndex)
+			}
+			if action.Payer != "" && action.PayerParentIndex > 0 {
+				payerParentSigner = getSigner(action.Payer.String(), ".", action.PayerParentIndex)
+			}
 			mAction := &db.MysqlAction{
-				TxHash:          tx.Hash.String(),
-				ActionHash:      action.ActionHash.String(),
-				ActionIndex:     j,
-				Nonce:           action.Nonce,
-				Height:          block.Number.Uint64(),
-				Created:         block.Time,
-				GasAssetId:      tx.GasAssetID,
-				TransferAssetId: action.AssetID,
-				ActionType:      uint64(action.Type),
-				From:            action.From.String(),
-				To:              action.To.String(),
-				Amount:          action.Amount,
-				GasLimit:        action.GasLimit,
-				GasUsed:         actionResult.GasUsed,
-				State:           actionResult.Status,
-				ErrorMsg:        actionResult.Error,
-				Remark:          []byte(fmt.Sprintf("%s", []byte(action.Remark))),
-				InternalCount:   internalCount,
-				Payer:           action.Payer.String(),
-				PayerGasPrice:   action.PayerGasPrice,
+				TxHash:            tx.Hash.String(),
+				ActionHash:        action.ActionHash.String(),
+				ActionIndex:       j,
+				Nonce:             action.Nonce,
+				Height:            block.Number.Uint64(),
+				Created:           block.Time,
+				GasAssetId:        tx.GasAssetID,
+				TransferAssetId:   action.AssetID,
+				ActionType:        uint64(action.Type),
+				From:              action.From.String(),
+				To:                action.To.String(),
+				Amount:            action.Amount,
+				GasLimit:          action.GasLimit,
+				GasUsed:           actionResult.GasUsed,
+				State:             actionResult.Status,
+				ErrorMsg:          actionResult.Error,
+				Remark:            []byte(fmt.Sprintf("%s", []byte(action.Remark))),
+				InternalCount:     internalCount,
+				Payer:             action.Payer.String(),
+				PayerGasPrice:     action.PayerGasPrice,
+				ParentSigner:      parentSinger,
+				PayerParentSigner: payerParentSigner,
 			}
 			parsedPayload, err := parsePayload(action)
 			if err != nil {

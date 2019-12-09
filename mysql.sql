@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS actions_hash (
   gas_used BIGINT NOT NULL,
   payer VARCHAR(100),
   payer_gas_price VARCHAR(1000),
+  parent_signer VARCHAR(100),
+  payer_parent_signer VARCHAR(100),
   state ENUM('0', '1') NOT NULL,
   error_msg longtext,
   remark BLOB,

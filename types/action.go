@@ -95,17 +95,19 @@ var ActionTypeToString map[ActionType]string = map[ActionType]string{
 }
 
 type RPCAction struct {
-	Type          ActionType    `json:"type"`
-	Nonce         uint64        `json:"nonce"`
-	From          Name          `json:"from"`
-	To            Name          `json:"to"`
-	AssetID       uint64        `json:"assetID"`
-	GasLimit      uint64        `json:"gas"`
-	Amount        *big.Int      `json:"value"`
-	Remark        hexutil.Bytes `json:"remark"`
-	Payload       hexutil.Bytes `json:"payload"`
-	ActionHash    Hash          `json:"actionHash"`
-	ActionIndex   uint64        `json:"actionIndex"`
-	Payer         Name          `json:"payer"`
-	PayerGasPrice *big.Int      `json:"payerGasPrice"`
+	Type             ActionType    `json:"type"`
+	Nonce            uint64        `json:"nonce"`
+	From             Name          `json:"from"`
+	To               Name          `json:"to"`
+	AssetID          uint64        `json:"assetID"`
+	GasLimit         uint64        `json:"gas"`
+	Amount           *big.Int      `json:"value"`
+	Remark           hexutil.Bytes `json:"remark"`
+	Payload          hexutil.Bytes `json:"payload"`
+	ActionHash       Hash          `json:"actionHash"`
+	ActionIndex      uint64        `json:"actionIndex"`
+	Payer            Name          `json:"payer"`
+	PayerGasPrice    *big.Int      `json:"payerGasPrice"`
+	ParentIndex      uint64        `json:"parentIndex"`
+	PayerParentIndex uint64        `json:"payerParentIndex"`
 }

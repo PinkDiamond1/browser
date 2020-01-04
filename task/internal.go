@@ -21,10 +21,10 @@ const maxuint = 2147483647
 func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	for i, itx := range data.DetailTxs {
 		tx := data.Block.Txs[i]
-		receipt := data.Receipts[i]
+		//receipt := data.Receipts[i]
 		for j, ias := range itx.InternalActions {
 			a := tx.RPCActions[j]
-			ar := receipt.ActionResults[j]
+			//ar := receipt.ActionResults[j]
 			for k, ia := range ias.InternalLogs {
 				if ia.Action.Type == types.CallContract {
 					if bytes.Equal(ia.Action.Payload, []byte{}) {

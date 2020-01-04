@@ -92,8 +92,8 @@ func (t *TokenTask) analysisToken(block *TaskChanData) {
 
 	//internal transaction
 	internalTxs := block.Block.DetailTxs
-	for i, tx := range internalTxs {
-		for j, action := range tx.InternalActions {
+	for _, tx := range internalTxs {
+		for _, action := range tx.InternalActions {
 			//if receipts[i].ActionResults[j].Status == types.ReceiptStatusSuccessful {
 			for _, internalLog := range action.InternalLogs {
 				if internalLog.Error != "" {

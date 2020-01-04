@@ -278,7 +278,7 @@ func (a *AccountTask) analysisAccount(data *types.BlockAndResult, dbTx *sql.Tx) 
 				if containsInternalTxs {
 					internalActions := detailTxs[i].InternalActions[j]
 					for _, iat := range internalActions.InternalLogs {
-						if iat.Error != "" {
+						if iat.Error == "" {
 							err := a.ActionToAccount(iat.Action, dbTx, data.Block, oldAccounts)
 							if err != nil {
 								ZapLog.Error("ActionToAccount error: ", zap.Error(err))
@@ -370,10 +370,12 @@ func (a *AccountTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 				if len(detailTxs) != 0 {
 					internalActions := detailTxs[i].InternalActions[j]
 					for _, iat := range internalActions.InternalLogs {
-						err := a.rollbackAccount(iat.Action, dbTx, deleteAccounts)
-						if err != nil {
-							ZapLog.Error("rollbackAccount error:", zap.Error(err))
-							return err
+						if iat.Error == ""{
+							err := a.rollbackAccount(iat.Action, dbTx, deleteAccounts)
+							if err != nil {
+								ZapLog.Error("rollbackAccount error:", zap.Error(err))
+								return err
+							}
 						}
 					}
 				}

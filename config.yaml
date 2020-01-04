@@ -1,12 +1,12 @@
 browser:
   mysql:
     user: root
-    password: 12345678
-    ip: localhost
+    password: Bochen@123
+    ip: 192.168.1.12
     port: 3306
-    database: ft
+    database: mft
   node:
-    rpcHost: http://192.168.1.12:11000
+    rpcHost: http://192.168.1.12:2201
   log:
     level: info #error info debug
     file:
@@ -15,7 +15,7 @@ browser:
       rotationTime: 1 #time.Duration 1:day 2:hour
       maxAge: 15 #day
     console: true
-    syncBlockShowNumber: 1
+    syncBlockShowNumber: 100
   tasks:
     - block
     - txs

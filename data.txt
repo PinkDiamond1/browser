@@ -1,0 +1,4 @@
+t,u,ftoken,fractal.founder,fractal.account,mapping
+t,h,ftoken,mapping,support,fractal.founder,fractal.account
+c,u,fractal.asset,
+c,u,fractal.account,,fractal,fractal.founder

@@ -278,10 +278,12 @@ func (a *AccountTask) analysisAccount(data *types.BlockAndResult, dbTx *sql.Tx) 
 				if containsInternalTxs {
 					internalActions := detailTxs[i].InternalActions[j]
 					for _, iat := range internalActions.InternalLogs {
-						err := a.ActionToAccount(iat.Action, dbTx, data.Block, oldAccounts)
-						if err != nil {
-							ZapLog.Error("ActionToAccount error: ", zap.Error(err))
-							return err
+						if iat.Error != "" {
+							err := a.ActionToAccount(iat.Action, dbTx, data.Block, oldAccounts)
+							if err != nil {
+								ZapLog.Error("ActionToAccount error: ", zap.Error(err))
+								return err
+							}
 						}
 					}
 				}

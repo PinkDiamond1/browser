@@ -44,6 +44,10 @@ func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *
 				if uint64(maxuint) < ia.Action.AssetID {
 					ia.Action.AssetID = uint64(maxuint)
 				}
+				iState := types.ReceiptStatusSuccessful
+				if ia.Error != "" {
+					iState = types.ReceiptStatusFailed
+				}
 				mInternal := &db.MysqlInternal{
 					TxHash:        tx.Hash.String(),
 					ActionHash:    a.ActionHash.String(),
@@ -59,14 +63,14 @@ func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *
 					GasLimit:      ia.Action.GasLimit,
 					GasUsed:       ia.GasUsed,
 					Depth:         ia.Depth,
-					State:         ar.Status,
+					State:         uint64(iState),
 					ErrorMsg:      ia.Error,
 				}
 				parsedPayload, err := parsePayload(ia.Action)
 				if err != nil {
 					ZapLog.Warn("parsePayload error: ", zap.Error(err), zap.Uint64("actionType", uint64(ia.Action.Type)), zap.Binary("payload", ia.Action.Payload))
 				}
-				if ar.Status == types.ReceiptStatusSuccessful {
+				if iState == types.ReceiptStatusSuccessful {
 					if ia.Action.Type == types.IssueAsset {
 						issueAssetPayload := parsedPayload.(types.IssueAssetObject)
 						if idx := strings.Index(issueAssetPayload.AssetName, ":"); idx <= 0 {

@@ -112,12 +112,15 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 				if len(detailTxs) != 0 {
 					internalActions := detailTxs[i].InternalActions[j]
 					for _, iat := range internalActions.InternalLogs {
-						if iat.Action.From.String() != "" {
-							changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, false)
+						if iat.Error != "" {
+							if iat.Action.From.String() != "" {
+								changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, false)
+							}
+							if iat.Action.To.String() != "" {
+								changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, true)
+							}
 						}
-						if iat.Action.To.String() != "" {
-							changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, true)
-						}
+
 					}
 				}
 			}

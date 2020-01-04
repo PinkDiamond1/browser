@@ -94,8 +94,9 @@ func (t *TokenTask) analysisToken(block *TaskChanData) {
 	internalTxs := block.Block.DetailTxs
 	for i, tx := range internalTxs {
 		for j, action := range tx.InternalActions {
-			if receipts[i].ActionResults[j].Status == types.ReceiptStatusSuccessful {
-				for _, internalLog := range action.InternalLogs {
+			//if receipts[i].ActionResults[j].Status == types.ReceiptStatusSuccessful {
+			for _, internalLog := range action.InternalLogs {
+				if internalLog.Error != "" {
 					if t.isTokenTxs(internalLog.Action.Type) {
 						isbackup := 0
 						if types.IssueAsset != internalLog.Action.Type {
@@ -110,8 +111,9 @@ func (t *TokenTask) analysisToken(block *TaskChanData) {
 				}
 			}
 		}
-
 	}
+
+	//}
 }
 
 func (t *TokenTask) rollback(block *TaskChanData) {

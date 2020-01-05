@@ -1,6 +1,6 @@
 SERVER_USER=zipper
 SERVER_IP=192.168.1.12
-SERVER_PATH=~/upload/temp/
+SERVER_PATH=~/upload/testnet/data
 
 CONFIG_FILE=config.yaml
 MYSQL_FILE=mysql.sql

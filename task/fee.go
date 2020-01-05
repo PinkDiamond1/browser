@@ -42,7 +42,6 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 		gasPrice := big.NewInt(0).Set(tx.GasPrice)
 		for j, aRs := range receipt.ActionResults {
 			at := tx.RPCActions[j]
-			var tokenName string
 			if at.Type == types.IssueAsset {
 				iActionAsset, err := parsePayload(at)
 				if err != nil {
@@ -50,12 +49,13 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 					return err
 				}
 				obj := iActionAsset.(types.IssueAssetObject)
-				tokenName = obj.AssetName
+				tokenName := obj.AssetName
 				if idx := strings.Index(obj.AssetName, ":"); idx <= 0 {
 					if len(at.From.String()) > 0 {
 						tokenName = at.From.String() + ":" + obj.AssetName
 					}
 				}
+				f.nodeTokens[obj.AssetName] = tokenName
 			}
 			feeFrom := at.From.String()
 			for k, aR := range aRs.GasAllot {
@@ -80,11 +80,11 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 					Reason:      aR.Reason,
 				}
 				if aR.Reason == 0 {
-					//assetName, err := f.getTokenName(dbTx, aR.Account.String())
-					//if err != nil {
-					//	return err
-					//}
-					mFee.To = tokenName
+					assetName, err := f.getTokenName(dbTx, aR.Account.String())
+					if err != nil {
+						return err
+					}
+					mFee.To = assetName
 				}
 				err := db.InsertFee(mFee, dbTx)
 				if err != nil {

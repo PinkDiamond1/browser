@@ -19,9 +19,6 @@ type InternalTask struct {
 const maxuint = 2147483647
 
 func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *sql.Tx) error {
-	if data.Block.Number.Uint64() == 5966112 {
-		panic("-----")
-	}
 	for i, itx := range data.DetailTxs {
 		tx := data.Block.Txs[i]
 		//receipt := data.Receipts[i]

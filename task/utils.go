@@ -10,6 +10,10 @@ import (
 	"math/big"
 )
 
+var (
+	Big0 = big.NewInt(0)
+)
+
 func parsePayload(action *types.RPCAction) (interface{}, error) {
 	if bytes.Compare(action.Payload, []byte{}) == 0 {
 		return "", nil

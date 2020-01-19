@@ -109,19 +109,19 @@ func (b *BalanceTask) analysisBalance(data *types.BlockAndResult, dbTx *sql.Tx) 
 						return err
 					}
 				}
-				if len(detailTxs) != 0 {
-					internalActions := detailTxs[i].InternalActions[j]
-					for _, iat := range internalActions.InternalLogs {
-						if iat.Error == "" {
-							if iat.Action.From.String() != "" {
-								changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, false)
-							}
-							if iat.Action.To.String() != "" {
-								changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, true)
-							}
+			}
+			if len(detailTxs) != 0 {
+				internalActions := detailTxs[i].InternalActions[j]
+				for _, iat := range internalActions.InternalLogs {
+					if iat.Error == "" && iat.Action.Amount.Cmp(Big0) > 0 {
+						if iat.Action.From.String() != "" {
+							changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, false)
 						}
-
+						if iat.Action.To.String() != "" {
+							changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, true)
+						}
 					}
+
 				}
 			}
 		}
@@ -217,16 +217,16 @@ func (b *BalanceTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 						changeBalance(balanceChangedMap, at.From.String(), at.AssetID, at.Amount, true)
 					}
 				}
-				if len(detailTxs) != 0 {
-					internalActions := detailTxs[i].InternalActions[j]
-					for _, iat := range internalActions.InternalLogs {
-						if iat.Error == "" {
-							if iat.Action.To.String() != "" {
-								changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, false)
-							}
-							if iat.Action.From.String() != "" {
-								changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, true)
-							}
+			}
+			if len(detailTxs) != 0 {
+				internalActions := detailTxs[i].InternalActions[j]
+				for _, iat := range internalActions.InternalLogs {
+					if iat.Error == "" && iat.Action.Amount.Cmp(Big0) > 0 {
+						if iat.Action.To.String() != "" {
+							changeBalance(balanceChangedMap, iat.Action.To.String(), iat.Action.AssetID, iat.Action.Amount, false)
+						}
+						if iat.Action.From.String() != "" {
+							changeBalance(balanceChangedMap, iat.Action.From.String(), iat.Action.AssetID, iat.Action.Amount, true)
 						}
 					}
 				}

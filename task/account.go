@@ -275,15 +275,15 @@ func (a *AccountTask) analysisAccount(data *types.BlockAndResult, dbTx *sql.Tx) 
 					ZapLog.Error("ActionToAccount error: ", zap.Error(err))
 					return err
 				}
-				if containsInternalTxs {
-					internalActions := detailTxs[i].InternalActions[j]
-					for _, iat := range internalActions.InternalLogs {
-						if iat.Error == "" {
-							err := a.ActionToAccount(iat.Action, dbTx, data.Block, oldAccounts)
-							if err != nil {
-								ZapLog.Error("ActionToAccount error: ", zap.Error(err))
-								return err
-							}
+			}
+			if containsInternalTxs {
+				internalActions := detailTxs[i].InternalActions[j]
+				for _, iat := range internalActions.InternalLogs {
+					if iat.Error == "" {
+						err := a.ActionToAccount(iat.Action, dbTx, data.Block, oldAccounts)
+						if err != nil {
+							ZapLog.Error("ActionToAccount error: ", zap.Error(err))
+							return err
 						}
 					}
 				}
@@ -367,15 +367,15 @@ func (a *AccountTask) rollback(data *types.BlockAndResult, dbTx *sql.Tx) error {
 					ZapLog.Error("rollbackAccount error:", zap.Error(err))
 					return err
 				}
-				if len(detailTxs) != 0 {
-					internalActions := detailTxs[i].InternalActions[j]
-					for _, iat := range internalActions.InternalLogs {
-						if iat.Error == ""{
-							err := a.rollbackAccount(iat.Action, dbTx, deleteAccounts)
-							if err != nil {
-								ZapLog.Error("rollbackAccount error:", zap.Error(err))
-								return err
-							}
+			}
+			if len(detailTxs) != 0 {
+				internalActions := detailTxs[i].InternalActions[j]
+				for _, iat := range internalActions.InternalLogs {
+					if iat.Error == "" {
+						err := a.rollbackAccount(iat.Action, dbTx, deleteAccounts)
+						if err != nil {
+							ZapLog.Error("rollbackAccount error:", zap.Error(err))
+							return err
 						}
 					}
 				}

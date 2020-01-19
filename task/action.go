@@ -91,12 +91,16 @@ func (a *ActionTask) analysisAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 					parsedPayload = issueAssetPayload
 				}
 			}
+			if parsedPayload == nil {
+				parsedPayload = action.Payload
+			}
 			jsonPayload, err := json.Marshal(parsedPayload)
 			if err != nil {
 				ZapLog.Error("json marshal error: ", zap.Error(err), zap.Binary("payload", parsedPayload.([]byte)))
 				return err
 			}
 			mAction.Payload = jsonPayload
+
 			err = db.InsertAction(mAction, dbTx)
 			if err != nil {
 				ZapLog.Error("InsertAction error: ", zap.Error(err))

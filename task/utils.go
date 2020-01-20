@@ -150,9 +150,10 @@ func parsePayload(action *types.RPCAction) (interface{}, error) {
 		asset, err := client.GetAssetInfoByName(issueAssetPayload.AssetName)
 		if err != nil {
 			ZapLog.Error("GetAssetInfoByName error", zap.Error(err), zap.String("name", issueAssetPayload.AssetName))
-			return nil, err
+			tmpPayload.Decimals = issueAssetPayload.Decimals
+		} else {
+			tmpPayload.Decimals = asset.Decimals
 		}
-		tmpPayload.Decimals = asset.Decimals
 		parsedPayload = tmpPayload
 		//}
 	}

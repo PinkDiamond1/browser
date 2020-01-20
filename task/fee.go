@@ -42,7 +42,7 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 		gasPrice := big.NewInt(0).Set(tx.GasPrice)
 		for j, aRs := range receipt.ActionResults {
 			at := tx.RPCActions[j]
-			if at.Type == types.IssueAsset {
+			if at.Type == types.IssueAsset && aRs.Status == types.ReceiptStatusSuccessful {
 				iActionAsset, err := parsePayload(at)
 				if err != nil {
 					ZapLog.Error("parsePayload error: ", zap.Error(err))

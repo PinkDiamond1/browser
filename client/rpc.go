@@ -39,7 +39,7 @@ func NewRPCRequest(jsonRpc string, method string, param ...interface{}) *RPCRequ
 	return r
 }
 
-func SendRPCRequest(rpcRequest *RPCRequest) (*gabs.Container, error) {
+func sendRPCRequest(rpcRequest *RPCRequest) (*gabs.Container, error) {
 	host := config.Node.RpcUrl
 	var buff bytes.Buffer
 	if err := json.NewEncoder(&buff).Encode(rpcRequest); err != nil {
@@ -61,6 +61,17 @@ func SendRPCRequest(rpcRequest *RPCRequest) (*gabs.Container, error) {
 		return nil, err
 	}
 	return jsonParsed, nil
+}
+
+func SendRPCRequest(rpcRequest *RPCRequest) (gc *gabs.Container, err error) {
+	for i := 0; i < 10; i++ {
+		gc, err := sendRPCRequest(rpcRequest)
+		if err == nil {
+			return gc, nil
+		}
+		time.Sleep(time.Second * time.Duration(1))
+	}
+	return nil, err
 }
 
 func SendRPCRequstWithAuth(host string, username string, password string, rpcRequest *RPCRequest) (*gabs.Container, error) {

@@ -8,7 +8,6 @@ import (
 	"github.com/browser/types"
 	"go.uber.org/zap"
 	"math/big"
-	"strings"
 )
 
 type TokenTask struct {
@@ -152,11 +151,11 @@ func saveToken(tx *sql.Tx, action *types.RPCAction, blockTime uint64, height uin
 	if action.Type == types.IssueAsset {
 		obj := iActionAsset.(types.IssueAssetObject)
 		tokenName := obj.AssetName
-		if idx := strings.Index(obj.AssetName, ":"); idx <= 0 {
-			if len(action.From.String()) > 0 {
-				tokenName = action.From.String() + ":" + obj.AssetName
-			}
-		}
+		//if idx := strings.Index(obj.AssetName, ":"); idx <= 0 {
+		//	if len(action.From.String()) > 0 {
+		//		tokenName = action.From.String() + ":" + obj.AssetName
+		//	}
+		//}
 		tokenInfo, err := client.GetAssetInfoByName(obj.AssetName)
 		if err != nil || tokenInfo == nil {
 			ZapLog.Panic("get asset info by name error", zap.Error(err), zap.String("assetName", obj.AssetName))
@@ -237,11 +236,11 @@ func rollbackToken(tx *sql.Tx, action *types.RPCAction, blockTime uint64, height
 	if action.Type == types.IssueAsset {
 		obj := iActionAsset.(types.IssueAssetObject)
 		tokenName := obj.AssetName
-		if idx := strings.Index(obj.AssetName, ":"); idx <= 0 {
-			if len(action.From.String()) > 0 {
-				tokenName = action.From.String() + ":" + obj.AssetName
-			}
-		}
+		//if idx := strings.Index(obj.AssetName, ":"); idx <= 0 {
+		//	if len(action.From.String()) > 0 {
+		//		tokenName = action.From.String() + ":" + obj.AssetName
+		//	}
+		//}
 		db.DeleteTokenByName(tx, tokenName)
 	} else if action.Type == types.IncreaseAsset {
 		obj := iActionAsset.(types.IncAssetObject)

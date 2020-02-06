@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"strings"
-
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"github.com/browser/types"
@@ -73,11 +71,11 @@ func (i *InternalTask) analysisInternalAction(data *types.BlockAndResult, dbTx *
 				if iState == types.ReceiptStatusSuccessful {
 					if ia.Action.Type == types.IssueAsset {
 						issueAssetPayload := parsedPayload.(types.IssueAssetObject)
-						if idx := strings.Index(issueAssetPayload.AssetName, ":"); idx <= 0 {
-							if len(ia.Action.From.String()) > 0 {
-								issueAssetPayload.AssetName = ia.Action.From.String() + ":" + issueAssetPayload.AssetName
-							}
-						}
+						//if idx := strings.Index(issueAssetPayload.AssetName, ":"); idx <= 0 {
+						//	if len(ia.Action.From.String()) > 0 {
+						//		issueAssetPayload.AssetName = ia.Action.From.String() + ":" + issueAssetPayload.AssetName
+						//	}
+						//}
 						parsedPayload = issueAssetPayload
 					}
 				}

@@ -174,12 +174,12 @@ func (a *analysis) getFeeData() {
 		for _, fee := range fees.ObjectFees {
 			switch fee.ObjectType {
 			case 0:
-				if idx := strings.Index(fee.ObjectName, ":"); idx <= 0 {
-					name := getFullName(fee.ObjectName)
-					if name != "" {
-						fee.ObjectName = name
-					}
-				}
+				//if idx := strings.Index(fee.ObjectName, ":"); idx <= 0 {
+				//	name := getFullName(fee.ObjectName)
+				//	if name != "" {
+				//		fee.ObjectName = name
+				//	}
+				//}
 				// if strings.Compare(fee.ObjectName, "libra") == 0 || strings.Compare(fee.ObjectName, "bitcoin") == 0 {
 				// 	fee.ObjectName = getFullName(fee.ObjectName)
 				// }
@@ -606,12 +606,12 @@ func (a *analysis) analysisAccount(action *types.RPCAction) {
 		}
 
 		assetName := asset.AssetName
-		if idx := strings.Index(asset.AssetName, ":"); idx <= 0 {
-			if len(action.From.String()) > 0 {
-				assetName = action.From.String() + ":" + asset.AssetName
-				tokenShortName[asset.AssetName] = assetName
-			}
-		}
+		//if idx := strings.Index(asset.AssetName, ":"); idx <= 0 {
+		//	if len(action.From.String()) > 0 {
+		//		assetName = action.From.String() + ":" + asset.AssetName
+		//		tokenShortName[asset.AssetName] = assetName
+		//	}
+		//}
 		db.InsertTokenInfo(assetName, assetInfo.Decimals, assetInfo.AssetId, asset.AssetName)
 		tokenAssetIDName[assetInfo.AssetId] = assetName
 
@@ -649,7 +649,7 @@ func (a *analysis) getTokenName(assetId uint64) string {
 	return data
 }
 
-func getFullName(shortName string) string {
-	name, _ := tokenShortName[shortName]
-	return name
-}
+//func getFullName(shortName string) string {
+//	name, _ := tokenShortName[shortName]
+//	return name
+//}

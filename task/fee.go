@@ -2,13 +2,11 @@ package task
 
 import (
 	"database/sql"
-	"github.com/browser/client"
 	"github.com/browser/db"
 	. "github.com/browser/log"
 	"github.com/browser/types"
 	"go.uber.org/zap"
 	"math/big"
-	"strings"
 )
 
 type FeeTask struct {
@@ -18,20 +16,20 @@ type FeeTask struct {
 	nodeTokens     map[string]string
 }
 
-func (f *FeeTask) getTokenName(dbTx *sql.Tx, name string) (string, error) {
-	if tokenName, ok := f.nodeTokens[name]; ok {
-		return tokenName, nil
-	} else {
-		asset, err := client.GetAssetInfoByName(name)
-		if err != nil {
-			ZapLog.Error("GetAssetInfoByName error", zap.Error(err), zap.String("name", name))
-			return "", err
-		}
-		dbToken := db.QueryTokenById(dbTx, asset.AssetId)
-		f.nodeTokens[name] = dbToken.AssetName
-		return dbToken.AssetName, nil
-	}
-}
+//func (f *FeeTask) getTokenName(dbTx *sql.Tx, name string) (string, error) {
+//	if tokenName, ok := f.nodeTokens[name]; ok {
+//		return tokenName, nil
+//	} else {
+//		asset, err := client.GetAssetInfoByName(name)
+//		if err != nil {
+//			ZapLog.Error("GetAssetInfoByName error", zap.Error(err), zap.String("name", name))
+//			return "", err
+//		}
+//		dbToken := db.QueryTokenById(dbTx, asset.AssetId)
+//		f.nodeTokens[name] = dbToken.AssetName
+//		return dbToken.AssetName, nil
+//	}
+//}
 
 func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) error {
 	receipts := data.Receipts
@@ -42,21 +40,21 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 		gasPrice := big.NewInt(0).Set(tx.GasPrice)
 		for j, aRs := range receipt.ActionResults {
 			at := tx.RPCActions[j]
-			if at.Type == types.IssueAsset && aRs.Status == types.ReceiptStatusSuccessful {
-				iActionAsset, err := parsePayload(at)
-				if err != nil {
-					ZapLog.Error("parsePayload error: ", zap.Error(err))
-					return err
-				}
-				obj := iActionAsset.(types.IssueAssetObject)
-				tokenName := obj.AssetName
-				if idx := strings.Index(obj.AssetName, ":"); idx <= 0 {
-					if len(at.From.String()) > 0 {
-						tokenName = at.From.String() + ":" + obj.AssetName
-					}
-				}
-				f.nodeTokens[obj.AssetName] = tokenName
-			}
+			//if at.Type == types.IssueAsset && aRs.Status == types.ReceiptStatusSuccessful {
+			//	iActionAsset, err := parsePayload(at)
+			//	if err != nil {
+			//		ZapLog.Error("parsePayload error: ", zap.Error(err))
+			//		return err
+			//	}
+			//	obj := iActionAsset.(types.IssueAssetObject)
+			//	tokenName := obj.AssetName
+			//	if idx := strings.Index(obj.AssetName, ":"); idx <= 0 {
+			//		if len(at.From.String()) > 0 {
+			//			tokenName = at.From.String() + ":" + obj.AssetName
+			//		}
+			//	}
+			//	f.nodeTokens[obj.AssetName] = tokenName
+			//}
 			feeFrom := at.From.String()
 			for k, aR := range aRs.GasAllot {
 				if tx.GasPrice.Cmp(bigZero) == 0 {
@@ -80,11 +78,12 @@ func (f *FeeTask) analysisFeeAction(data *types.BlockAndResult, dbTx *sql.Tx) er
 					Reason:      aR.Reason,
 				}
 				if aR.Reason == 0 {
-					assetName, err := f.getTokenName(dbTx, aR.Account.String())
-					if err != nil {
-						return err
-					}
-					mFee.To = assetName
+					//assetName, err := f.getTokenName(dbTx, aR.Account.String())
+					//if err != nil {
+					//	return err
+					//}
+					//mFee.To = assetName
+					mFee.To = aR.Account.String()
 				}
 				err := db.InsertFee(mFee, dbTx)
 				if err != nil {
